@@ -1,0 +1,381 @@
+﻿<!DOCTYPE html>
+<html ng-app="im">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <title>SnailIM Login</title>
+    <script>
+        // var ROOT = 'res://js/';
+        var ROOT = '';
+        var PAGE = 'login';
+        var loginController = loginController || {};
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/global.css" />');
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/login.css" />');
+    </script>
+</head>
+<body class="bg no_select" ng-controller="appController">
+    <div dev-tool></div>
+    <div ng-controller="loginController" class="cef_wrap">
+        <div ui-view></div>
+        <div class="error_tips_wrap" style="display:none;" ng-style="{'display' : login.errorMessage ? 'flex' : 'none'}">
+            <span ng-bind-html="login.errorMessage"></span>
+        </div>
+    </div>
+    <script>
+        document.write('<script src="'+ROOT+'js/main.js">'+'<\/script>');
+        document.write('<script src="'+ROOT+'js/jquery.cookie.js">'+'<\/script>');
+        document.write('<script src="'+ROOT+'js/md5.js">'+'<\/script>');
+        document.write('<script src="'+ROOT+'js/captcha.js">'+'<\/script>');
+    </script>
+    <script type="text/ng-template" id="login.html">
+        <div class="login" ng-class="{active_login:ready}">
+            <div class="view_title">
+                <p ng-lang langkey="pwdLogin"></p>
+                <a draggable="false" close-win></a>
+                <a draggable="false" min-win></a>
+                <div class="clear"></div>
+            </div>
+            <div class="logo">
+                <img draggable="false" src="img/touxiang.png" />
+                <!-- <p class="logo_title" ng-lang langkey="appName">静静办公</p> -->
+            </div>
+            <div class="login_form">
+                <div ng-area-select select-area="login.selectArea"></div>
+                <div class="ipt_con">
+                    <span class="ipt_field" ng-bind="login.selectArea"></span>
+                    <input class="ipt" type="text" id="account" number-only ng-model="login.phone" placeholder="" ng-keydown="accountKeyDown($event)" ng-lang langkey="phone" tabindex="1"/>
+                    <a draggable="false" href="javascript:;" class="clear_ipt" ng-show="login.phone" ng-click="clearIpt('phone')"></a>
+                </div>
+                <div class="ipt_con">
+                    <span class="ipt_field" ng-lang langKey="password"></span>
+                    <input class="ipt" type="password" id="password" ng-model="login.password" placeholder="" ng-lang langkey="password" ng-if="!login.showPassword" ng-keydown="loginKeyDown($event)" tabindex="2"/>
+                    <input class="ipt" type="text" id="password" ng-model="login.password" placeholder="" ng-lang langkey="password" ng-if="login.showPassword" ng-keydown="loginKeyDown($event)" tabindex="2"/>
+                    <a draggable="false" href="javascript:;" class="clear_ipt" ng-show="login.password" ng-click="clearIpt('password')" style="right:20px;"></a>
+                    <a draggable="false" class="eye" ng-class="{close:login.showPassword}" ng-click="switchType()"></a>
+                </div>
+                <!-- 验证码 -->
+                <div class="ipt_con" ng-show="login.showCaptcha">
+                    <span class="ipt_field" ng-lang langKey="captcha"></span>
+                    <input class="ipt_captcha" type="text" id="captcha" ng-model="login.captcha" placeholder="" ng-lang langkey="captcha" ng-keydown="loginKeyDown($event)" tabindex="2"/>
+                    <div ng-repeat="item in login.captchaImg_items">
+                        <img id="{{item.id}}" class="captchaImg" title="{{item.title}}" alt="{{item.alt}}" ng-src="{{item.src}}" ng-click="showCaptchaFn(item.id)">
+                    </div>
+                </div>
+                <!-- 验证码end -->
+                <div class="checkbox_con">
+                    <!-- <a draggable="false" href="javascript:;" ng-lang langkey="languageSettingTitle1" ng-click="langSetting()" class="change_a"></a> -->
+                    <a draggable="false" class="link forget" href="#/resetPwd" ng-lang langkey="forget"></a>
+                    <label class="checkbox">
+                        <input type="checkbox" name="auto_login" ng-model="login.autoLogin"/>
+                        <i></i>
+                        <span ng-lang langkey="autoLogin"></span>
+                    </label>
+                    <div class="clear"></div>
+                </div>
+                <a draggable="false" class="submit" href="javascript:;" ng-click="connect()" ng-lang langkey="loginButton" ng-class="{disable:!login.phone || !login.password || (login.showCaptcha ? !login.captcha : false)}"></a>
+            </div>
+            <div class="login_bott" ng-style="login.login_bott">
+                <a draggable="false" class="link register_link" href="javascript:;" ui-sref="register({phone:1})"><span ng-lang langkey="register"></span><i></i></a>
+                <a draggable="false" class="link service_link" href="javascript:;" ui-sref="serviceLogin.form" ng-lang langkey="serviceLogin"></a>
+            </div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="switchAccount.html">
+        <div class="login" ng-class="{active_login:ready}">
+            <div class="view_title">
+                <p ng-lang langkey="setting.login"></p>
+                <a draggable="false" close-win></a>
+                <a draggable="false" min-win></a>
+                <div class="clear"></div>
+            </div>
+            <div class="logo logined_acc">
+                <img draggable="false" ng-src="{{logined.Avatar}}"/>
+                <p ng-bind="logined.Name"></p>
+            </div>
+            <a draggable="false" class="submit" href="javascript:;" ng-click="loginCurrentUser()" ng-lang langkey="loginButton" style="margin-top:85px;"></a>
+            <p class="center_btns">
+                <a draggable="false" class="switch_btn" href="javascript:;" ng-lang langkey="switchAccount" ng-click="goLogin()"></a>
+            </p>
+        </div>
+    </script>
+    <script type="text/ng-template" id="areaSelect.html">
+        <div class="ipt_con">
+            <span class="ipt_field" ng-lang langKey="countryArea"></span>
+            <div class="selected_area_con" ng-click="openAreas()" stop-bubble>
+                <span ng-bind-html="selectAreaName"></span>
+                <i></i>
+            </div>
+            <div class="areas" ng-style="{display:isOpen ? 'block' : 'none'}">
+                <a draggable="false" class="area" ng-repeat="area in areas" ng-click="onSelectArea(area)">
+                    <span ng-lang langKey="{{area.langkey}}"></span>
+                    <span ng-bind="area.pix"></span>
+                </a>
+            </div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="autoLoginTips.html">
+        <div class="auto_login_wrap">
+            <div class="view_title">
+                <p ng-lang langkey="safeTipTitle"></p>
+                <a draggable="false" href="javascript:;" class="win_btn close_win" ng-click="setAutoLogin(true)"><i></i></a>
+                <div class="clear"></div>
+            </div>
+            <div class="tip_content">
+                <p ng-lang langkey="safeTipContentLine1"></p>
+                <p ng-lang langkey="safeTipContentLine2"></p>
+            </div>
+            <div class="btns_wrap">
+                <a draggable="false" href="javascript:;" ng-click="setAutoLogin(false)" class="btn" ng-lang langkey="donNotOpen"></a>
+                <a draggable="false" href="javascript:;" ng-click="setAutoLogin(true)" class="btn1 blue ml20" ng-lang langkey="confirmOpen"></a>
+            </div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="resetPwd.html">
+        <div class="login">
+            <div ui-view="resetPwdTitle"></div>
+            <div ui-view="resetPwdLogo"></div>
+            <div ui-view="resetPwdStep" class="login_form"></div>
+            <div ui-view="resetPwdStepBtns"></div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="resetPwdTitle.html">
+        <div class="view_title">
+            <p ng-lang langkey="resetPwd"></p>
+            <a draggable="false" close-win></a>
+            <a draggable="false" min-win></a>
+            <div class="clear"></div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="formLogo.html">
+        <div class="logo">
+            <img draggable="false" src="img/touxiang.png" />
+        </div>
+    </script>
+    <script type="text/ng-template" id="resetPwdStep1.html">
+        <div ng-area-select select-area="resetPwd.selectArea"></div>
+        <div class="ipt_con">
+            <span class="ipt_field" ng-bind="resetPwd.selectArea"></span>
+            <input class="ipt" type="text" id="account" number-only ng-model="resetPwd.phone" placeholder="" ng-keydown="accountKeyDown($event)" ng-lang langkey="phone"/>
+            <a draggable="false" href="javascript:;" class="clear_ipt" ng-show="resetPwd.phone" ng-click="clearIpt('phone')"></a>
+        </div>
+    </script>
+    <script type="text/ng-template" id="resetPwdStep1Btns.html">
+        <div class="login">
+            <div class="btns_wrap wrap1">
+                <a draggable="false" href="#/login" class="btn" ng-lang langkey="cancel"></a>
+                <a draggable="false" href="javascript:;"class="btn1 blue ml20" ng-class="{disable:!resetPwd.phone}" ng-click="goStep2()" ng-lang langkey="next"></a>
+            </div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="resetPwdTitle2.html">
+        <div class="view_title">
+            <a draggable="false" href="javascript:;" ng-click="goStep1()" class="go_back"><i></i></a>
+            <div class="clear"></div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="resetPwdStep2.html">
+        <div class="ipt_con">
+            <span class="ipt_field" ng-lang langkey="smsCode"></span>
+            <input class="ipt" type="text" id="account" ng-model="resetPwd.smsCode" placeholder="" ng-keydown="accountKeyDown($event)" ng-lang langkey="smsCode"/>
+            <a draggable="false" href="javascript:;" class="clear_ipt" ng-show="resetPwd.smsCode" ng-click="clearIpt('smsCode')"></a>
+        </div>
+    </script>
+    <script type="text/ng-template" id="resetPwdStep2Btns.html">
+        <div class="btns_wrap wrap1">
+            <a draggable="false" href="javascript:;" class="btn disable" ng-if="resetPwd.codeCount" ng-bind-html="resetPwd.codeCount|countDownFilter"></a>
+            <a draggable="false" href="javascript:;" class="btn green" ng-click="getSmsCode()" ng-if="!resetPwd.codeCount" ng-lang langkey="getCode"></a>
+            <a draggable="false" href="javascript:;" class="btn1 blue ml20" ng-class="{disable:!resetPwd.smsCode}" ng-click="goStep3()" ng-lang langkey="next"></a>
+        </div>
+    </script>
+    
+    <script type="text/ng-template" id="resetPwdStep3.html">
+        <div class="ipt_con">
+            <span class="ipt_field" ng-lang langKey="password"></span>
+            <input class="ipt" maxlength="16" type="password" id="password" ng-model="resetPwd.password" placeholder="" ng-lang langkey="newPwd" ng-if="!resetPwd.showPassword" ng-keydown="loginKeyDown($event)"/>
+            <input class="ipt" maxlength="16" type="text" id="password" ng-model="resetPwd.password" placeholder="" ng-lang langkey="newPwd" ng-if="resetPwd.showPassword" ng-keydown="loginKeyDown($event)"/>
+            <a draggable="false" href="javascript:;" class="clear_ipt" ng-show="resetPwd.password" ng-click="clearIpt('password')" style="right:20px;"></a>
+            <a draggable="false" class="eye" ng-class="{close:resetPwd.showPassword}" ng-click="switchType('showPassword')"></a>
+        </div>
+        <div class="ipt_con">
+            <span class="ipt_field" ng-lang langKey="password"></span>
+            <input class="ipt" maxlength="16" type="password" id="confirmPassword" ng-model="resetPwd.confirmPassword" placeholder="" ng-lang langkey="confirmNewPwd" ng-if="!resetPwd.showConfirmPassword" ng-keydown="loginKeyDown($event)"/>
+            <input class="ipt" maxlength="16" type="text" id="confirmPassword" ng-model="resetPwd.confirmPassword" placeholder="" ng-lang langkey="confirmNewPwd" ng-if="resetPwd.showConfirmPassword" ng-keydown="loginKeyDown($event)"/>
+            <a draggable="false" href="javascript:;" class="clear_ipt" ng-show="resetPwd.confirmPassword" ng-click="clearIpt('confirmPassword')" style="right:20px;"></a>
+            <a draggable="false" class="eye" ng-class="{close:resetPwd.showConfirmPassword}" ng-click="switchType('showConfirmPassword')"></a>
+        </div>
+    </script>
+    <script type="text/ng-template" id="resetPwdStep3Btns.html">
+        <div class="btns_wrap wrap1">
+            <a draggable="false" href="javascript:;" class="btn" ng-click="goStep2()" ng-lang langkey="cancel"></a>
+            <a draggable="false" href="javascript:;" class="btn1 blue ml20" ng-click="goStep4()" ng-lang langkey="confirm" ng-class="{disable:!resetPwd.password || !resetPwd.confirmPassword,blue:resetPwd.password && resetPwd.confirmPassword}"></a>
+        </div>
+    </script>
+    <script type="text/ng-template" id="resetPwdStep4.html">
+        <div class="oper_result" style="margin-top: 100px;">
+            <img draggable="false" src="img/pic_changePwd.png" />
+            <div class="btns_wrap wrap1">
+                <a draggable="false" draggable="false" href="#/login" class="whole_btn blue"ng-lang langkey="finish"></a>
+            </div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="serviceLogin.html">
+        <div class="login">
+            <div ui-view="serviceLoginTitle"></div>
+            <div ui-view="serviceLoginLogo"></div>
+            <div ui-view="serviceLoginForm"></div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="serviceLoginTitle.html">
+        <div class="view_title">
+            <p><a draggable="false" href="#/login" class="go_back"><i></i></a><span ng-lang langkey="serviceLogin"></span></p>
+            <div close-win></div>
+            <div min-win></div>
+            <div class="clear"></div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="serviceLoginForm.html">
+        <div class="login_form">
+            <div class="ipt_con">
+                <span class="ipt_field" ng-lang langkey="account"></span>
+                <input class="ipt" type="text" id="account" ng-model="service.account" placeholder="" ng-keydown="accountKeyDown($event)" ng-lang langkey="account"/>
+                <a draggable="false" href="javascript:;" class="clear_ipt" ng-show="service.account" ng-click="clearIpt('account')"></a>
+            </div>
+            <div class="ipt_con">
+                <span class="ipt_field" ng-lang langKey="password"></span>
+                <input class="ipt" type="password" id="password" ng-model="service.password" placeholder="" ng-lang langkey="password" ng-if="!service.showPassword" ng-keydown="loginKeyDown($event)"/>
+                <input class="ipt" type="text" id="password" ng-model="service.password" placeholder="" ng-lang langkey="password" ng-if="service.showPassword" ng-keydown="loginKeyDown($event)"/>
+                <a draggable="false" href="javascript:;" class="clear_ipt" ng-show="service.password" ng-click="clearIpt('password')" style="right:20px;"></a>
+                <a draggable="false" class="eye" ng-class="{close:service.showPassword}" ng-click="switchType()"></a>
+            </div>
+            <!-- 验证码 -->
+            <div class="ipt_con" ng-show="login.showCaptcha">
+                <span class="ipt_field" ng-lang langKey="captcha"></span>
+                <input class="ipt_captcha" type="text" id="captcha" ng-model="login.captcha" placeholder="" ng-lang langkey="captcha" ng-keydown="loginKeyDown($event)" tabindex="2"/>
+                <div ng-repeat="item in login.captchaImg_items">
+                    <img id="{{item.id}}" class="captchaImg" title="{{item.title}}" alt="{{item.alt}}" ng-src="{{item.src}}" ng-click="showCaptchaFn(item.id)">
+                </div>
+            </div>
+            <!-- 验证码end -->
+            <div class="checkbox_con">
+                <a draggable="false" class="forget link" href="javascript:;" ng-lang langkey="forget" ng-click="forgetPwd()" style="float:left;"></a>
+            </div>
+            <a draggable="false" class="submit" href="javascript:;" ng-click="connect()" ng-lang langkey="loginButton" ng-class="{disable:!service.account || !service.password || (login.showCaptcha ? !login.captcha : false)}"></a>
+        </div>
+    </script>
+    
+    <script type="text/ng-template" id="register.html">
+        <div class="login">
+            <div ui-view="registerTitle"></div>
+            <div ui-view="registerLogo"></div>
+            <div ui-view="registerStep" class="login_form"></div>
+            <div ui-view="registerBtns"></div>
+        </div>
+    </script>
+    
+    <script type="text/ng-template" id="registerTitle.html">
+        <div class="view_title">
+            <p ng-lang langkey="register"></p>
+            <a draggable="false" close-win></a>
+            <a draggable="false" min-win></a>
+            <div class="clear"></div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="registerTitle2.html">
+        <div class="view_title">
+            <a draggable="false" href="javascript:;" ng-click="goStep1()" class="go_back"><i></i></a>
+            <div class="clear"></div>
+        </div>
+    </script>
+    
+    <script type="text/ng-template" id="registerStep1Form.html">
+        <div ng-area-select select-area="register.selectArea"></div>
+        <div class="ipt_con">
+            <span class="ipt_field" ng-bind="register.selectArea"></span>
+            <input class="ipt" type="text" id="account" number-only ng-model="register.phone" placeholder="" ng-lang langkey="phone"/>
+            <a draggable="false" href="javascript:;" class="clear_ipt" ng-show="register.phone" ng-click="clearIpt('phone')"></a>
+        </div>
+    </script>
+    <script type="text/ng-template" id="registerStep1Btns.html">
+        <div class="btns_wrap wrap1">
+            <a draggable="false" href="#/login" class="btn" ng-lang langkey="cancel"></a>
+            <a draggable="false" href="javascript:;"class="btn1 blue ml20" ng-class="{disable:!register.phone}" ng-click="goStep2()" ng-lang langkey="next"></a>
+        </div>
+    </script>
+    
+    <script type="text/ng-template" id="registerStep2Form.html">
+        <div class="ipt_con">
+            <span class="ipt_field" ng-lang langkey="smsCode"></span>
+            <input class="ipt" type="text" id="account" ng-model="register.smsCode" placeholder="" ng-lang langkey="smsCode"/>
+            <a draggable="false" href="javascript:;" class="clear_ipt" ng-show="register.smsCode" ng-click="clearIpt('smsCode')"></a>
+        </div>
+    </script>
+    <script type="text/ng-template" id="registerStep2Btns.html">
+        <div class="btns_wrap wrap1">
+            <a draggable="false" href="javascript:;" class="btn disable" ng-if="register.codeCount" ng-bind-html="register.codeCount|countDownFilter"></a>
+            <a draggable="false" href="javascript:;" class="btn green" ng-click="getSmsCode()" ng-if="!register.codeCount" ng-lang langkey="getCode"></a>
+            <a draggable="false" href="javascript:;" class="btn1 blue ml20" ng-class="{disable:!register.smsCode}" ng-click="goStep3()" ng-lang langkey="next"></a>
+        </div>
+    </script>
+    
+    <script type="text/ng-template" id="registerStep3Form.html">
+        <div class="ipt_con">
+            <span class="ipt_field" ng-lang langKey="password"></span>
+            <input class="ipt" maxlength="16" type="password" id="password" ng-model="register.password" placeholder="" ng-lang langkey="password" ng-if="!register.showPassword" ng-keydown="loginKeyDown($event)"/>
+            <input class="ipt" maxlength="16" type="text" id="password" ng-model="register.password" placeholder="" ng-lang langkey="password" ng-if="register.showPassword" ng-keydown="loginKeyDown($event)"/>
+            <a draggable="false" href="javascript:;" class="clear_ipt" ng-show="register.password" ng-click="clearIpt('password')" style="right:20px;"></a>
+            <a draggable="false" class="eye" ng-class="{close:register.showPassword}" ng-click="switchType('showPassword')"></a>
+        </div>
+        <div class="ipt_con">
+            <span class="ipt_field" ng-lang langKey="confirmPwd"></span>
+            <input class="ipt" maxlength="16" type="password" id="confirmPassword" ng-model="register.confirmPassword" placeholder="" ng-lang langkey="repeatPwd" ng-if="!register.showConfirmPassword" ng-keydown="loginKeyDown($event)"/>
+            <input class="ipt" maxlength="16" type="text" id="confirmPassword" ng-model="register.confirmPassword" placeholder="" ng-lang langkey="repeatPwd" ng-if="register.showConfirmPassword" ng-keydown="loginKeyDown($event)"/>
+            <a draggable="false" href="javascript:;" class="clear_ipt" ng-show="register.confirmPassword" ng-click="clearIpt('confirmPassword')" style="right:20px;"></a>
+            <a draggable="false" class="eye" ng-class="{close:register.showConfirmPassword}" ng-click="switchType('showConfirmPassword')"></a>
+        </div>
+    </script>
+    <script type="text/ng-template" id="registerStep3Btns.html">
+        <div class="btns_wrap wrap1">
+            <a draggable="false" href="javascript:;" class="btn" ng-click="skipStep3()" ng-lang langkey="skip"></a>
+            <a draggable="false" href="javascript:;"class="btn1 ml20" ng-click="goStep4()"  ng-lang langkey="confirm" ng-class="{disable:!register.password || !register.confirmPassword,blue:register.confirmPassword && register.password}"></a>
+        </div>
+    </script>
+    <script type="text/ng-template" id="registerStep4.html">
+        <div class="oper_result" style="margin-top: 100px;">
+            <img draggable="false" src="img/pic_register.png" />
+            <div class="btns_wrap wrap1">
+                <a draggable="false" href="javascript:;" class="whole_btn blue" ng-lang langkey="finish" ng-click="callLoginAfterRegister()"></a>
+            </div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="logining.html">
+        <div class="view_title">
+            <a draggable="false" close-win></a>
+            <a draggable="false" min-win></a>
+            <div class="clear"></div>
+        </div>
+        <div class="loging_view">
+            <div>
+                <img draggable="false" src="img/PC_loading.gif" />
+            </div>
+            <div>
+                <p ng-show="login.stateStr" ng-bind-html="login.stateStr"></p>
+            </div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="serviceForgetPwd.html">
+        <div class="auto_login_wrap">
+            <div class="view_title">
+                <p ng-lang langkey="forgetPwdTitle"></p>
+                <a draggable="false" href="javascript:;" class="win_btn close_win" ng-click="closeThisPop()"><i></i></a>
+                <div class="clear"></div>
+            </div>
+            <div class="tip_content">
+                <p ng-lang langkey="forgetPwdContentLine1"></p>
+                <p ng-lang langkey="forgetPwdContentLine2"></p>
+            </div>
+            <div class="btns_wrap">
+                <a draggable="false" href="javascript:;" ng-click="closeThisPop()" class="btn" ng-lang langkey="getThat"></a>
+            </div>
+        </div>
+    </script>
+</body>
+</html>

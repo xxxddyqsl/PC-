@@ -1,0 +1,346 @@
+﻿<!DOCTYPE html>
+<html ng-app="im">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <title>SnailIM Login</title>
+    <script>
+        // var ROOT = 'res://js/';
+        var ROOT = '';
+        var PAGE = 'history';
+        var loginController = loginController || {};
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/global.css" />');
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/jquery.scrollbar.css" />');
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/main.css" />');
+    </script>
+</head>
+<body class="bg" ng-controller="appController" style="background:#fff">
+    <div ng-controller="mainController" class="main_wrap msg_history" ng-style="{display:user ? 'block' : 'none'}" style="display:none;">
+        <a draggable="false" class="resize" ng-if="windowStatus.status != 2"></a>
+        <div class="frame_top">
+            <p class="frame_title" ng-lang langkey="messageManager"></p>
+            <a draggable="false" class="min_frame" ng-click="min()"><i></i></a>
+            <a draggable="false" class="close_frame" ng-click="close()"><i></i></a>
+            <div class="search_range">
+                <span class="search_ipt_wrap">
+                    <input type="text" class="s_ipt s_ipt1" ng-lang langkey="contacts" ng-model="contact" ng-keydown="goContent($event)"/>
+                    <a draggable="false" href="javascript:;" class="clear_search" ng-show="contact" ng-click="clearIpt('contact')"></a>
+                </span>
+                <input id="content" type="text" class="s_ipt s_ipt2" ng-lang langkey="content" ng-model="content" ng-keydown="keydown($event)"/>
+                <a draggable="false" href="javascript:;" class="s_btn" ng-lang langkey="search" ng-click="search()"></a>
+                <a draggable="false" class="s_drop" ng-click="switchRange()" stop-bubble></a>
+                <div class="range_wrap ng-hide" ng-show="showRange" stop-bubble>
+                    <p class="range_title"><span ng-lang langkey="searchRange" class=""></span>:</p>
+                    <div class="selects">
+                        <select ng-init="selectRange = range[0]" ng-model="selectRange" ng-options="x.text for x in range"></select>
+                        <select ng-init="selectTime = time[2]" ng-model="selectTime" ng-options="x.text for x in time"></select>
+                        <select ng-init="selectType = type[0]" ng-model="selectType" ng-options="x.text for x in type"></select>
+                    </div>
+                    <div class="range_btns">
+                        <a draggable="false" href="javascript:;" ng-lang langkey="confirm" ng-click="search()"></a>
+                        <a draggable="false" href="javascript:;" ng-lang langkey="cancel" ng-click="showRange=false"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="history_middle">
+            <div class="history_left">
+                <div class="chats" ng-if="status == 0 && chatId">
+                    <div concat-directive></div>
+                </div>
+                <div class="result_chats" ng-if="status != 0">
+                    <p class="toggle_res" ng-class="{show:showResultChats,select:!chatId && status !=0}" ng-click="clearChatId()">
+                        <i class="trans" ng-click="toggleChats()" stop-bubble></i>
+                        <span ng-lang langkey="allResult"></span>
+                        <span ng-bind-html="'('+totalCount+')'"></span>
+                    </p>
+                    <div class="result_chats_wrap" ng-if="showResultChats">
+                        <div concat-directive ng-repeat="chat in resultChatList" ng-click="getChatMsgList(chat.Id)"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="history_right">
+                <div class="msg_list_wrap" ng-class="{half_part:status == 3}">
+                    <div class="msgs left_msgs" ng-if="status == 0 && chatId">
+                        <div nf-if="msgResultList.length">
+                            <div message-directive ng-repeat="_msg in msgResultList" on-finish-render="1" ng-click="toLocationMsg(_msg)"></div>
+                        </div>
+                        <div nf-if="!msgResultList && noMessageTip" class="no_msg_tip">
+                            <p ng-bind-html="noMessageTip"></p>
+                        </div>
+                    </div>
+                    <div class="msgs_bottom" ng-if="status == 0 && chatId">
+                        <div class="pager_wrap">
+                            <a draggable="false" href="javascript:;" class="refresh" ng-click="refresh()"></a>
+                            <a draggable="false" href="javascript:;" class="pager first" ng-click="firstPage(0)" ng-class="{disabled:page <= 1}"></a>
+                            <a draggable="false" href="javascript:;" class="pager prev" ng-click="prevPage(0)" ng-class="{disabled:page <= 1}"></a>
+                            <a draggable="false" href="javascript:;" class="pager next" ng-click="nextPage(0)" ng-class="{disabled:page >= totalPage}"></a>
+                            <a draggable="false" href="javascript:;" class="pager last" ng-click="lastPage(0)" ng-class="{disabled:page >= totalPage}"></a>
+                        </div>
+                        <div class="selected_date no_select" ng-click="showDatePicker()" stop-bubble>
+                            <i class="picker_icon"></i>
+                            <span ng-bind-html="selectedDate|datePickerFormat" class="date_span"></span>
+                            <div class="date_picker" id="date_picker" ng-show="datePickerStatus" stop-bubble></div>
+                        </div>
+                    </div>
+                    <div class="msgs left_msgs" ng-if="status != 0">
+
+                        <div class="Loading_bg gg-flex-1" ng-show="Loading_icon">
+                            <div class="Loading_bk">
+                              <img class="Loading_icon" src="img/loading.png" />
+                              <div class="Loading_title">消息查询较慢，请稍等</div>
+                            </div>  
+                          </div>
+
+                        <div nf-if="msgResultList.length">
+                            <div ng-repeat="group in msgResultList">
+                                <p class="msg_group_name">
+                                    <span ng-bind-html="group.Type == 1002 ? langPack.getKey('group') : langPack.getKey('concat')"></span>-<span ng-bind="group.Name"></span>
+                                </p>
+                                <div message-directive ng-repeat="_msg in group.dataList" on-finish-render="2" render-data="group.Id" ng-click="toLocationMsg(_msg)"></div>
+                            </div>
+                        </div>
+                        <div nf-if="!msgResultList && noMessageTip" class="no_msg_tip">
+                            <p ng-bind-html="noMessageTip"></p>
+                        </div>
+                    </div>
+                    <div class="msgs_bottom" ng-if="status != 0">
+                        <div class="pager_wrap">
+                            <a draggable="false" href="javascript:;" class="refresh" ng-click="refresh()"></a>
+                            <a draggable="false" href="javascript:;" class="pager first" ng-click="firstPage(2)" ng-class="{disabled:page <= 1}"></a>
+                            <a draggable="false" href="javascript:;" class="pager prev" ng-click="prevPage(2)" ng-class="{disabled:page <= 1}"></a>
+                            <a draggable="false" href="javascript:;" class="pager next" ng-click="nextPage(2)" ng-class="{disabled:page >= totalPage}"></a>
+                            <a draggable="false" href="javascript:;" class="pager last" ng-click="lastPage(2)" ng-class="{disabled:page >= totalPage}"></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="msg_list_wrap half_part" ng-if="status == 3" style="width:50%;margin-left:-1px;border-left:1px solid #d7dde5">
+                    <div class="msgs right_msgs">
+                        <div message-directive ng-repeat="_msg in posMsgResultList" on-finish-render="3" ng-click="selectMsg(_msg)"></div>
+                    </div>
+                    <div class="msgs_bottom">
+                        <div class="pager_wrap">
+                            <a draggable="false" href="javascript:;" class="pager first" ng-click="firstPage(3)" ng-class="{disabled:locationMsgPage <= 1}"></a>
+                            <a draggable="false" href="javascript:;" class="pager prev" ng-click="prevPage(3)" ng-class="{disabled:locationMsgPage <= 1}"></a>
+                            <a draggable="false" href="javascript:;" class="pager next" ng-click="nextPage(3)" ng-class="{disabled:locationMsgPage >= locationMsgTotalPage}"></a>
+                            <a draggable="false" href="javascript:;" class="pager last" ng-click="lastPage(3)" ng-class="{disabled:locationMsgPage >= locationMsgTotalPage}"></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.write('<script src="'+ROOT+'js/main.js">'+'<\/script>');
+    </script>
+    <script type="text/ng-template" id="chatConcat.html">
+        <div class="chat_block" ng-class="{select:currentChatId == chat.Id || chat.Id == chatId}">
+            <div class="avatar" ng-if="status == 0">
+                <img ng-src="{{chat.Avatar}}" draggable="false"/>
+            </div>
+            <div class="chat_info">
+                <div class="info_top">
+                    <p class="emp_name" ng-if="status != 0" chat-name-split width="138" chat="chat" type="right"></p>
+                    <p class="emp_name" ng-if="status == 0">{{chat.Name ? chat.Name : chat.ShowName}}</p>
+                </div>
+            </div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="message.html">
+        <div class="msg msg_{{_msg.messageid}}" id="msg_{{_msg.messageid}}" time="{{_msg.timeStamp}}" ng-dblclick="chatWith(_msg)" ng-class="{mine:_msg.senderId == user.Id,select : _msg.messageid == selectedMsg.messageid}">
+            <p class="msg_send_date" ng-if="_msg.showDate"><span ng-bind-html="_msg.sendDate"></span></p>
+            <p class="history_time">
+                <span class="msg_sender_name" ng-bind="_msg.sender.SShowName || _msg.sender.Name"></span>
+                <span class="_msg_time" ng-bind="_msg.timeStamp|dateFormat:'hh:mm:ss'"></span>
+            </p>
+            <!-- <p class="msg_time" ng-show="_msg.showTime"><span>{{_msg.timeStamp|msgDetailTimeFormat}}</span></p> -->
+            <!-- <p class="msg_time" ng-if="_msg.type == webConfig.MSG_SYSTEM_TYPE">{{_msg.content}}</p> -->
+            <!-- 群操作消息 -->
+            <div ng-if="_msg.type == webConfig.MSG_SERVICE_TYPE && _msg.msgObj.n_TYPE == 100">
+                <p class="msg_time">{{_msg|groupOperateMsgFilter}}</p>
+            </div>
+            <!-- 撤回消息 -->
+            <div ng-if="_msg.type == webConfig.MSG_SERVICE_TYPE && _msg.msgObj.n_TYPE == 7">
+                <p class="msg_time"><span>{{(_msg.senderId == user.Id ? langPack.getKey('you') : _msg.msgObj.senderName)+ ' ' + langPack.getKey('withDrawMsg')}}</span></p>
+            </div>
+            <!-- 加入公司 -->
+            <div ng-if="_msg.type == webConfig.MSG_SERVICE_TYPE && _msg.msgObj.n_TYPE == 5">
+                <p class="msg_time" ng-if="_msg.msgObj.addCompanyType == 'agree'">{{_msg.msgObj.szMobileTel + ' ' + langPack.getKey('joinEnt') + ' ' + _msg.msgObj.entName}}</p>
+                <p class="msg_time" ng-if="_msg.msgObj.addCompanyType == 'invite'">{{_msg.msgObj.szMobileTel + ' ' + langPack.getKey('inviteEnt') + ' ' + _msg.msgObj.entName + ',' + langPack.getKey('seeInMobile')}}</p>
+            </div>
+            <!-- 语音会议 -->
+            <div ng-if="_msg.type == webConfig.MSG_SERVICE_TYPE && _msg.msgObj.n_TYPE == 3 && _msg.msgObj.voiceMeetingType == 'invite'">
+                <p class="msg_time">{{_msg.sender.Name + ' ' + langPack.getKey('invitedIntoMetting')}}</p>
+            </div>
+            <!-- 文本消息 -->
+            <div ng-if="_msg.type == webConfig.MSG_TEXT_TYPE && !_msg.sercontenttype" class="txt_msg">
+                <div class="msg_txt_warper">
+                    <p ng-if="isGroup && _msg.senderId != user.Id" class="msg_sender_name" ng-bind="_msg.sender.SShowName || _msg.sender.Name"></p>
+                    <div class="warper">
+                        <!-- <span class="msg_split"></span> -->
+                        <pre class="msg_txt" pid="msg_{{_msg.messageid}}"><span class="hide_name">{{_msg.sender.Name}}：</span><span ng-bind-html="_msg|msgFilter:searching.ContentKey"></span>
+                        </pre>
+                        <a draggable="false" href="javascript:;" class="resend" ng-show="_msg.status == webConfig.MSG_SENDFAIL" ng-click="resendMsg(_msg)"></a>
+                        <a draggable="false" href="javascript:;" class="sending" ng-show="_msg.status == webConfig.MSG_SENDING"><img draggable="false" src="img/ico_loading.gif" /></a>
+                    </div>
+                </div>
+                <div class="clear"></div>
+            </div>
+            <!-- 服务号消息 -->
+            <div ng-if="_msg.type == webConfig.MSG_SERVICE_TYPE && _msg.msgObj.n_TYPE == 2">
+                <div class="msg_txt_warper">
+                    <div class="msg_servive_wrap" ng-click="openServiceMsgLink(_msg)">
+                        <p class="_title"><span ng-bind-html="_msg.msgObj.s_TITLE"></span><span class="_time" ng-bind-html="_msg.timeStamp | msgDetailTimeFormat"></span></p>
+                        <img ng-src="{{_msg.msgObj.s_COVERIMAGEURL}}" class="_img load_img" draggable="false"/>
+                        <p class="_s_title">{{_msg.msgObj.s_INTRODUCE | serviceContentFilter}}</p>
+                        <div class="broadcast_footer">
+                            <a draggable="false" href="javascript:;" class="broadcast_detail_btn go_service_detail"><span ng-lang langkey="seeDetail"></span><span class="right_arrow"></span></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="clear"></div>
+            </div>
+            <!-- 广播消息 -->
+            <div ng-if="_msg.type == webConfig.MSG_SERVICE_TYPE && _msg.msgObj.n_TYPE == 1">
+                <div class="msg_txt_warper">
+                    <!-- <p class="_ent_name">{{_msg.msgObj.s_ENT_NAME}}</p> -->
+                    <div class="msg_broad_wrap">
+                        <p class="_broad_title"><span class="_from_ent" ng-bind="'【'+_msg.msgObj.s_ENT_NAME+'】'"></span><span ng-bind="_msg.msgObj.s_TITLE"></span></p>
+                        <!-- <p class="_title">{{_msg.msgObj.s_TITLE}}</p> -->
+                        <!-- <p class="_time">{{_msg.date | msgDetailTimeFormat}}</p> -->
+                        <!-- <img ng-src="{{_msg.msgObj.s_COVERIMAGEURL}}" class="_img"/> -->
+                        <pre class="_s_content" ng-bind="_msg.msgObj.s_CONTENTS | broadContentFilter"></pre>
+                        <!-- <p class="_go_link"><i></i>阅读全文</p> -->
+                        <div class="broadcast_footer">
+                            <a draggable="false" href="javascript:;" class="broadcast_detail_btn go_broad_detail"><span ng-lang langkey="seeDetail">查看详情</span><span class="right_arrow"></span></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="clear"></div>
+            </div>
+            <!-- 语音消息 -->
+            <div ng-if="_msg.type == webConfig.MSG_VOICE_TYPE" class="voice_msg">
+                <div class="msg_txt_warper">
+                    <p ng-if="isGroup && _msg.senderId != user.Id" class="msg_sender_name" ng-bind="_msg.sender.SShowName || _msg.sender.Name"></p>
+                    <div class="warper"  context-menu-hepler menu-forwardable="1" menu-msg="_msg" menu-data="{{_msg.messageid}}" menu-type="{{webConfig.MSG_NAME}}">
+                        <span class="msg_split"></span>
+                        <div class="msg_txt voice_area" ng-style="{width:(50 + _msg.content * 7) + 'px'}" ng-click="playVoice(_msg)">
+                            <i class="voice_icon" ng-class="{playing:playingVoice == _msg}"></i>
+                            <span class="voice_time" time="{{_msg.content}}" ng-if="playingVoice != _msg">{{_msg.content}}''</span>
+                            <span class="voice_time" time="{{_msg.playingTime}}" ng-if="playingVoice == _msg">{{_msg.playingTime}}''</span>
+                        </div>
+                        <!-- <a href="javascript:;" class="resend" ng-show="_msg.status == webConfig.MSG_SENDFAIL" ng-click="resendMsg(_msg)"></a> -->
+                        <!-- <a href="javascript:;" class="sending" ng-show="_msg.status == webConfig.MSG_SENDING"><img src="img/ico_loading.gif" /></a> -->
+                        <div class="voice_infos">
+                            <a draggable="false" href="javascript:;" class="unread" ng-show="_msg.senderId != user.Id && _msg.fileStatus != 7"></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="clear"></div>
+            </div>
+            <!-- 视频消息 -->
+            <div ng-if="_msg.type == webConfig.MSG_VIDEO_TYPE" class="media_msg">
+                <div class="msg_txt_warper">
+                    <p ng-if="isGroup && _msg.senderId != user.Id" class="msg_sender_name" ng-bind="_msg.sender.SShowName || _msg.sender.Name"></p>
+                    <div class="warper">
+                        <pre class="msg_txt video_area" ng-click="playVideo(_msg)">
+                            <span class="play_video"></span>
+                            <img draggable="false" class="thumb_img load_img" ng-src="data:image/jpg;base64,{{_msg.content}}" thumb-img-loader/>
+                        </pre>
+                    </div>
+                </div>
+                <div class="clear"></div>
+            </div>
+            <!-- 文件消息 -->
+            <div ng-if="_msg.type == webConfig.MSG_FILE_TYPE" class="file_msg">
+                <div class="msg_txt_warper">
+                    <p ng-if="isGroup && _msg.senderId != user.Id" class="msg_sender_name" ng-bind="_msg.sender.SShowName || _msg.sender.Name"></p>
+                    <div class="warper">
+                        <span class="msg_split"></span>
+                        <div class="msg_txt">
+                            <div class="file_detail">
+                                <div class="file_icon {{_msg.content | fileExtFilter}}">
+                                    <i class="trans_icon" ng-class="{trans_error:_msg.fileStatus == 3 , trans_success : _msg.fileStatus == 5}"></i>
+                                </div>
+                                <div class="file_info">
+                                    <span class="file_name" ng-bind-html="_msg.content" title="{{_msg.content}}"></span>
+                                    <span class="file_size gray" ng-if="fileStatus != 3">{{_msg.fileLength | fileSizeFormat}}</span>
+                                    <span class="file_status gray trans_speed" style="display:none;"></span>
+                                    <span class="file_status gray trans_status" ng-lang style="display:none;"></span>
+                                </div>
+                                <div class="clear"></div>
+                            </div>
+                            <div class="file_operate sender_operate" ng-if="_msg.senderId == user.Id">
+                                <!-- <a href="javascript:;" class="download" ng-lang langkey="download"></a>
+                                <a href="javascript:;" class="save_as" ng-lang langkey="saveAs"></a>
+                                <a href="javascript:;" class="forward_file" ng-lang langkey="forward"></a>
+                                <a href="javascript:;" class="cancel_upload gray" ng-lang langkey="cancelUpload"></a>
+                                
+                                <a href="javascript:;" class="re_upload" ng-lang langkey="reupload"></a> -->
+                                <a draggable="false" href="javascript:;" class="open ng-hide" ng-lang langkey="open" ng-click="openFile(_msg)"></a>
+                                <a draggable="false" href="javascript:;" class="open_dir ng-hide" ng-lang langkey="openDir" ng-click="openDir(_msg)"></a>
+                                <a stop-bubble draggable="false" href="javascript:;" class="forward_file" ng-lang langkey="forward" ng-click="forwardMsg(_msg)"></a>
+                            </div>
+                            <div class="file_operate receive_operate" ng-if="_msg.senderId != user.Id">
+                                
+                                <!-- <a href="javascript:;" class="download" ng-lang langkey="download"></a> -->
+                                <!-- <a href="javascript:;" class="save_as" ng-lang langkey="saveAs"></a> -->
+                                
+                                <!-- <a href="javascript:;" class="cancel_download gray" ng-lang langkey="cancelDownload"></a> -->
+                                
+                                <!-- <a href="javascript:;" class="re_download" ng-lang langkey="reDownload"></a> -->
+                                
+                                <a stop-bubble draggable="false" href="javascript:;" class="open ng-hide" ng-lang langkey="open" ng-show="_msg.fileStatus == 4 || _msg.fileStatus == 5" ng-click="openFile(_msg)"></a>
+                                <a stop-bubble draggable="false" href="javascript:;" class="open_dir ng-hide" ng-lang langkey="openDir" ng-show="_msg.fileStatus == 4 || _msg.fileStatus == 5" ng-click="openDir(_msg)"></a>
+                                <a stop-bubble draggable="false" href="javascript:;" class="forward_file" ng-lang langkey="forward" ng-show="_msg.fileStatus == 0 || _msg.fileStatus == 4 || _msg.fileStatus == 5" ng-click="forwardMsg(_msg)"></a>
+                            </div>
+                        </div>
+                        <!-- <a href="javascript:;" class="resend" ng-show="_msg.status == webConfig.MSG_SENDFAIL" ng-click="resendMsg(_msg)"></a>
+                        <a href="javascript:;" class="cancel" ng-show="_msg.uploadStatus == webConfig.FILE_UPLOADING" ng-click="cancelFile(_msg)"></a>
+                        <a href="javascript:;" class="sending" ng-if="_msg.uploadStatus == webConfig.FILE_COMPLETE && _msg.status == webConfig.MSG_SENDING"><img src="img/ico_loading.gif" /></a> -->
+                    </div>
+                </div>
+                <div class="clear"></div>
+            </div>
+            <!-- 图片消息 -->
+            <div ng-if="_msg.type == webConfig.MSG_PIC_TYPE" class="media_msg">
+                <div class="msg_txt_warper">
+                    <p ng-if="isGroup && _msg.senderId != user.Id" class="msg_sender_name" ng-bind="_msg.sender.SShowName || _msg.sender.Name"></p>
+                    <div class="warper">
+                        <pre class="msg_txt" pid="msg_{{_msg.messageid}}" ng-click="previewImage(_msg)">
+                            <span class="hide_name">{{_msg.sender.Name}}：</span><img draggable="false" ng-click="openImage(_msg,$event)" class="thumb_img load_img" ng-src="{{_msg.filePath || _msg.fileUrl}}" />
+                        </pre>
+                        <a draggable="false" href="javascript:;" class="resend" ng-show="_msg.status == webConfig.MSG_SENDFAIL" ng-click="resendMsg(_msg)"></a>
+                        <a draggable="false" href="javascript:;" class="cancel" ng-show="_msg.uploadStatus == webConfig.FILE_UPLOADING" ng-click="cancelFile(_msg)"></a>
+                        <a draggable="false" href="javascript:;" class="sending" ng-show="_msg.status == webConfig.MSG_SENDING"><img draggable="false" src="img/ico_loading.gif" /></a>
+                    </div>
+                </div>
+                <div class="clear"></div>
+            </div>
+            <!-- 服务号消息 -->
+            <div ng-if="_msg.sercontenttype ==  webConfig.MSG_HTML_TYPE && _msg.type == _msg.type == webConfig.MSG_TEXT_TYPE">
+                <iframe ng-src="{{joinUrl(_msg)}}" ng-style="{height:_msg.typeex+'px'}" class="services_html_msg" scrolling="no"></iframe>
+                <div class="clear"></div>
+            </div>
+            <!-- 分享的新闻消息 -->
+            <div ng-if="_msg.type == webConfig.MSG_SERVICE_TYPE && _msg.msgObj.n_TYPE == 0" class="news_msg">
+                <div class="avatar">
+                    <img emp-avatar avatar="_msg.sender.SAvatar" emp="_msg.sender"/>
+                </div>
+                <div class="msg_txt_warper">
+                    <p ng-if="isGroup && _msg.senderId != user.Id" class="msg_sender_name" ng-bind="_msg.sender.SShowName || _msg.sender.Name"></p>
+                    <div class="warper" context-menu-hepler menu-forwardable="1" menu-data="{{_msg.messageid}}" menu-type="{{webConfig.MSG_NAME}}" menu-msg="_msg">
+                        <pre class="msg_txt" pid="msg_{{_msg.messageid}}">
+                            <img draggable="false" class="thumb_img load_img" ng-src="data:image/jpg;base64,{{_msg.msgObj.thumb}}" />
+                            <div class="news_detail">
+                                <p class="news_title" title="{{_msg.msgObj.title}}">{{_msg.msgObj.title}}</p>
+                                <a draggable="false" href="{{_msg.msgObj.url}}" class="news_url" target="_blank" title="{{_msg.msgObj.title}}">{{_msg.msgObj.url}}</a>
+                            </div>
+                        </pre>
+                    </div>
+                </div>
+                <div class="clear"></div>
+            </div>
+        </div>
+    </script>
+</body>
+</html>

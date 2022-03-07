@@ -1,0 +1,47 @@
+﻿<!DOCTYPE html>
+<html ng-app="im">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <title>SnailIM Login</title>
+    <script>
+        // var ROOT = 'res://js/';
+        var ROOT = '';
+        var PAGE = 'sendFile';
+        var loginController = loginController || {};
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/global.css" />');
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/jquery.scrollbar.css" />');
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/main.css" />');
+    </script>
+</head>
+<body class="bg" ng-controller="appController" style="background:#fff">
+    <div ng-controller="mainController" class="main_wrap large_file" ng-if="user">
+        <div class="large_file_title">
+            <p class="frame_title" ng-lang langkey="largeFile"></p>
+            <a draggable="false" class="min_frame white" ng-click="min()"><i></i></a>
+            <a draggable="false" class="close_frame white" ng-click="close()"><i></i></a>
+        </div>
+        <p ng-lang langkey="dragFileTips" class="drag_tips"></p>
+        <div class="large_file_middle">
+            <div id="file_list" class="file_list" style="display:none;" ng-style="{display:fileList.length?'block':none}">
+                <div class="file_detail" ng-repeat="file in fileList">
+                    <a draggable="false" href="javascript:;" class="delete_file" ng-lang langkey="deleteFile" ng-click="deleteFile($index);"></a>
+                    <div class="file_icon {{file.Path | fileExtFilter}}" ng-if="!file.IsDirectory"></div>
+                    <div class="file_icon folder" ng-if="file.IsDirectory"></div>
+                    <div class="file_info">
+                        <span class="file_name" ecllipse-directive content="file.Path|fileNameFilter" width="193"></span>
+                        <span class="file_size gray" ng-bind-html="file.Size | fileSizeFormat"></span>
+                    </div>
+                    <div class="clear"></div>
+                </div>
+            </div>
+            <a draggable="false" href="javascript:;" class="add_file" ng-click="addFile()"></a>
+        </div>
+        <div class="frame_btns">
+            <a draggable="false" href="javascript:;" class="confirm " ng-lang langkey="send" ng-click="sendFile()"></a>
+        </div>
+    </div>
+    <script>
+        document.write('<script src="'+ROOT+'js/main.js">'+'<\/script>');
+    </script>
+</body>
+</html>

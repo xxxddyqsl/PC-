@@ -1,0 +1,647 @@
+var controllers = angular.module('Controllers');
+var FRAMEID = 'history';
+controllers.controller('appController',['$rootScope','$scope','webConfig','$timeout','$document','frameService',function($rootScope,$scope,webConfig,$timeout,$doc,frameService){
+    frameService.getCurrentUser(function(res){
+        $timeout(function(){
+            $scope.user = webConfig.getUser();
+        })
+    })
+    $doc.bind('mousedown',function(e){
+        var tar = e.srcElement || e.target;
+        var tagName = tar.tagName.toLowerCase();
+        var parentTar = tar.parentNode;
+        var parTagName = parentTar.tagName.toLowerCase();
+        if(e.clientY <= 40 && parTagName != 'a'  && tagName != 'a' && tagName != 'img' && tagName !='input' && ($('.setting').find(tar).size() == 0)){
+            mouseDownTimer = setTimeout(function(){
+                callCefMethod('frame/move');
+                $('body').addClass('no_select');
+            },50);
+        }
+    });
+    $doc.bind('click',function(e){
+        $scope.show = false;
+        $rootScope.$broadcast('document.click',e);
+    });
+    $doc.bind('mouseup',function(e){
+        $('body').removeClass('no_select');
+    });
+}]);
+controllers.controller('mainController',['$rootScope','$scope','concatService','$templateCache','$compile','$timeout','webConfig','util','chatService','frameService','langPack','$interval',function($rootScope,$scope,concatService,$templateCache,$compile,$timeout,webConfig,util,chatService,frameService,langPack,$interval){
+    setTimeout(function(){
+        $('#content').focus();
+    },200);
+    var search = util.getSearch();
+    $scope.status = 0 ; // 0 默认(左侧显示传进来的聊天，没有则置空)1 搜索(左侧显示搜索结果的聊天) 2 点击了搜索结果的左侧聊天 3点击了消息(需要定位消息所在位置，并分屏显示)
+    $scope.contact = ''; // 搜索条件中的联系人
+    $scope.content = ''; // 搜索条件中的内容
+    $scope.chatId = ''; // 搜索条件中的聊天id
+    $scope.msgId = ''; // 搜索条件中的消息id
+    $scope.defaultChatId = search.chatId; // 默认点进来的聊天
+    $scope.datePickerStatus = false; // 是否显示日历
+    $scope.selectedDate = new Date(); // 日历选择的日期
+    $scope.locationDate = ''; // 点击日历里的日期需要定位到此日期第一条消息
+    $scope.locationMsgId = ''; // 根据返回的消息列表，找到对应的消息ID，并在渲染完成后scrollTop到本消息
+    $scope.pagerAction = ''; // 保存点击向上翻页还是向下翻页，以确定是否需要滚动到最底部
+    $scope.selectedMsg = ''; // 保存已点击的消息，以改变背景
+    $scope.searching = {}; // 保存点击搜索时的搜索条件，用于翻页时
+    
+    var COUNT = 30;
+    $scope.showResultChats = true; // 是否显示搜索结果中的聊天列表
+    $scope.page = 0 ;// 当前页
+    $scope.totalPage = 0; // 消息总页码
+    $scope.locationMsgPage = 0; // 点击的消息所在页码
+    $scope.locationMsgTotalPage = 0; // 点击消息后查询的总页码
+    
+    $scope.locationMsg = ''; // 定位的消息
+    $scope.locationSelectedMsg = ''; // 保存定位结果后消息列表中选择的消息，用于改变背景
+    $scope.msgResultList = []; // 搜索结果消息列表
+    $scope.posMsgResultList = []; // 定位消息的消息列表
+    $scope.showRange = false; // 是否显示高级搜索
+    $scope.resultChatList = []; // 搜索结果中的聊天列表
+    
+    $scope.locationParams = {}; // 保存定位销消息时的参数
+    
+    $scope.close = function(){
+        frameService.closeFrame(FRAMEID);
+    }
+    $scope.min = function(){
+        callCefMethod('frame/minimum');
+    }
+    
+    $scope.range = [
+        {text : langPack.getKey('all'),val : -1},
+        {text : langPack.getKey('contacts'),val : 1000},
+        {text : langPack.getKey('group'),val : 1002}
+    ];
+    $scope.selectRange = $scope.range[0];
+    
+    $scope.time = [
+        {text : langPack.getKey('all'),val : -1},
+        {text : langPack.getKey('recentOneMonth'),val : 1},
+        {text : langPack.getKey('recentThreeMonth'),val : 2},
+        {text : langPack.getKey('recentOneYear'),val : 3}
+    ];
+    $scope.selectTime = $scope.time[2];
+    
+    $scope.noMessageTip = '';
+    
+    $scope.type = [
+        {text : langPack.getKey('all'),val : -1},
+        {text : langPack.getKey('searchText'),val : 0},
+        {text : langPack.getKey('searchFile'),val : 3},
+    ];
+    $scope.selectType = $scope.type[0];
+    $scope.switchRange = function(){
+        $scope.showRange = true;
+    }
+
+    var chatId = search.chatId;
+    if(chatId){
+        chatService.getNewChat($scope.defaultChatId,function(res){
+            $timeout(function(){
+                if(res.Data.Type == 1000){
+                    $scope.contact = res.Data.Name;
+                }
+                $scope.chatId = chatId;
+                $scope.chat = res.Data;
+                goSearchChatMsg(undefined,function(res){
+                    if(res.Data.TotalCount == 0){
+                        $scope.selectTime = $scope.time[3];
+                        goSearchChatMsg();
+                    }
+                });
+            })
+        })
+    }
+    $scope.clearIpt = function(key){
+        $scope[key] = '';
+    }
+    var map = {};
+    $scope.showDatePicker = function(){
+        var params = {};
+        params.chatId = $scope.chatId;
+        var date = new Date($scope.selectedDate.getTime());
+        params.startTimeStamp = date.setDate(1);
+        params.endTimeStamp = date.setMonth(date.getMonth() + 1);
+        $('#date_picker').html('');
+        params.status = [1];
+        chatService.getHasMsgDays(params,function(res){
+            if(res.Data && res.Data.length){
+                for(var i=0;i<res.Data.length;i++){
+                    var date = new Date(res.Data[i]).format('YYYY-MM-DD');
+                    map[date] = 1;
+                }
+            }
+            $timeout(function(){
+                $scope.datePickerStatus = true;
+                new util.DatePicker({
+                    el : $('#date_picker'),
+                    onChangeMonth : function(date,callback){
+                        $scope.selectedDate = date;
+                        var params = {};
+                        params.chatId = $scope.chatId;
+                        var date = new Date($scope.selectedDate.getTime());
+                        params.startTimeStamp = date.setDate(1);
+                        params.endTimeStamp = date.setMonth(date.getMonth() + 1);
+                        chatService.getHasMsgDays(params,function(res){
+                            if(res.Data && res.Data.length){
+                                for(var i=0;i<res.Data.length;i++){
+                                    var date = new Date(res.Data[i]).format('YYYY-MM-DD');
+                                    map[date] = 1;
+                                }
+                            }
+                            callback && callback();
+                        })
+                    },
+                    format : function(date,td){
+                        var span = document.createElement('span');
+                        span.innerHTML = date.format('D');
+                        td.appendChild(span);
+                        date = date.format('YYYY-MM-DD');
+                        if(map[date]){
+                            td.className = 'has_msg';
+                        }
+                    },
+                    dateClick : function(date,td){
+                        if($(td).hasClass('has_msg')){
+                            $scope.selectedDate = date;
+                            var start = $scope.selectedDate.getTime();
+                            var end = start + 24 * 60 * 60 * 1000;
+                            $scope.page = 0;
+                            $scope.locationDate = date;
+                            $scope.locationMsgId = '';
+                            $scope.datePickerStatus = false;
+                            goSearchChatMsg({
+                                EndTimestamp : start
+                            })
+                        }
+                    }
+                })
+            })
+        });
+    }
+    $scope.$on('ngRepeatFinished',function(ev,val,renderData){
+        if(val == 1){
+            if($('.left_msgs .load_img').size()){
+                $('.left_msgs .load_img').load(function(){
+                    scroll($('.left_msgs'));
+                }).error(function(){
+                    scroll($('.left_msgs'));
+                })
+            }
+            scroll($('.left_msgs'));
+        }else if(val == 2){
+            for(var i=0;i<$scope.msgResultList.length;i++){
+                if($scope.msgResultList[i].Id == renderData){
+                    $scope.msgResultList[i].rendered = true;
+                }
+            }
+            var allRendered = true;
+            for(var i=0;i<$scope.msgResultList.length;i++){
+                if(!$scope.msgResultList[i].rendered){
+                    allRendered = false;
+                }
+            }
+            if(allRendered){
+                scroll($('.left_msgs'));
+            }
+            scroll($('.left_msgs'));
+        }else{
+            if($('.right_msgs .load_img').size()){
+                $('.right_msgs .load_img').load(function(){
+                    scroll($('.right_msgs'));
+                }).error(function(){
+                    scroll($('.right_msgs'));
+                })
+            }
+            scroll($('.right_msgs'));
+        }
+        function scroll(wrap){
+            if($scope.locationMsgId && wrap.find('.msg_'+$scope.locationMsgId).size()){
+                var dom = $('.msg_'+$scope.locationMsgId);
+                dom.each(function(){
+                    var _wrap = $(this).parents('.msgs');
+                    if(_wrap.hasClass('left_msgs')){
+                        if($scope.status != 0){
+                            if(this.offsetTop < _wrap.scrollTop()){
+                                _wrap.scrollTop(this.offsetTop);
+                            }
+                        }else{
+                            _wrap.scrollTop(this.offsetTop);
+                        }
+                    }else{
+                        _wrap.scrollTop(this.offsetTop - 20);
+                    }
+                })
+            }else{
+                if($scope.pagerAction == 'prev' || !$scope.pagerAction){
+                    if(wrap.find('.load_img').size()){
+                        wrap.find('.load_img').load(function(){
+                            wrap.scrollTop(999999999);
+                        }).error(function(){
+                            wrap.scrollTop(999999999);
+                        })
+                    }
+                    wrap.scrollTop(999999999);
+                }else{
+                    wrap.scrollTop(0);
+                }
+            }
+        }
+    })
+    function getParams(){
+        var params = {
+            UserKey : '',
+            ContentKey : '',
+            StartTimestamp : 0,
+            EndTimestamp : 0,
+            ChatType : $scope.selectRange.val,
+            MsgType : $scope.selectType.val,
+            ChatId : $scope.chatId,
+            MsgId : '',
+            Page : $scope.page,
+            Count : COUNT
+        }
+        var endTimeStamp= 0;
+        var startTimeStamp = 0;
+        if($scope.selectTime.val != -1){
+            var now = new Date();
+            endTimeStamp = now.getTime();
+            var month = now.getMonth();
+            switch($scope.selectTime.val){
+                case 1 : 
+                    startTimeStamp = now.setMonth(month - 1);
+                    break;
+                case 2 : 
+                    startTimeStamp = now.setMonth(month - 3);
+                    break;
+                case 3:
+                    startTimeStamp = now.setMonth(month - 12);
+                    break;
+                default:
+                    break;
+            }
+        }
+        params.StartTimestamp = startTimeStamp;
+        params.EndTimestamp = endTimeStamp;
+        return params;
+    }
+    // 内容输入框回车
+    $scope.keydown = function(e){
+        if(e.keyCode == util.KEYMAP.ENTER){
+            $scope.search();
+        }
+    }
+    // 联系人输入框回车
+    $scope.goContent = function(e){
+        if(e.keyCode == util.KEYMAP.ENTER){
+            $('#content').focus();
+        }
+    }
+    // 点击搜索
+    $scope.search = function(){
+        $('.result_chats').scrollTop(0);
+        $scope.chatId = '';
+        $scope.msgId = '';
+        $scope.page = 0;
+        $scope.status = 1;
+        $scope.msgResultList = [];
+        var params = getParams();
+        params.UserKey = $scope.contact;
+        params.ContentKey = $scope.content;
+        // params.chatId = chatId;
+        $scope.Loading_icon=true;
+        goSearch(params);
+        $timeout(function(){
+            $scope.noMessageTip = '';
+        })
+        $scope.showRange = false;
+    }
+    // 根据聊天搜索消息
+    function goSearchChatMsg(_params,callback){
+        $scope.locationMsgId = '';
+        var params = getParams();
+        if(_params){
+            for(var p in _params){
+                params[p] = _params[p];
+            }
+            params.page = 0;
+        }
+        params.ChatId = $scope.defaultChatId;
+        params.status = [1];
+        var fn = _params ? chatService.locationMsg : chatService.searchChatMsg;
+        fn.call(chatService,params,function(res){
+            $timeout(function(){
+                if(params.page != 0){
+                    $scope.locationDate = '';
+                }
+                $scope.page = res.Data.CurrentPage;
+                if(res.Data.TotalCount){
+                    $scope.totalPage = parseInt((res.Data.TotalCount + COUNT - 1) / COUNT);
+                }else{
+                    if(callback){
+                        callback(res);
+                    }else{
+                        if(params.Page == 0){
+                            $scope.noMessageTip = ($scope.selectTime.val == '-1' ? '' : $scope.selectTime.text) + langPack.getKey('noMessage');
+                        }
+                    }
+                }
+                var list = res.Data.Data;
+                if($scope.locationDate){
+                    for(var i=0;i<list.length;i++){
+                        var date = new Date(list[i].timeStamp);
+                        if(date.format('YYYY-MM-DD') == $scope.locationDate.format('YYYY-MM-DD')){
+                            $scope.locationMsgId = list[i].messageid;
+                            break;
+                        }
+                    }
+                }
+                
+                $scope.msgResultList = list;
+            });
+        })
+    }
+    // 开始搜索/搜索翻页
+    function goSearch(params){
+        $scope.searching = params;
+        params.status = [1];
+        chatService.searchMsg(params,function(res){
+            $timeout(function(){
+                if(!res.Data.totalCount){
+                    if(params.Page == 0){
+                        $scope.noMessageTip = langPack.getKey('noSearchMsg');
+                    }
+                }
+                if(params.Page == 0){
+                    if(!params.ChatId){
+                        $scope.totalCount = res.Data.totalCount;
+                    }
+                    $scope.totalPage = parseInt((res.Data.totalCount + COUNT - 1) / COUNT);
+                    $scope.page = $scope.totalPage;
+                }else{
+                    $scope.page = params.Page;
+                }
+                $scope.msgResultList = res.Data.dataList;
+                $scope.Loading_icon=false;
+
+                if(params.Page == 0 && res.Data.chatList){
+                    $scope.resultChatList = res.Data.chatList;
+                }
+            });
+        })
+    }
+    // 定位消息后翻页
+    function goLocationMsgPage(){
+        var params = {};
+        params.ChatId = $scope.locationMsg.chatId;
+        params.Page = $scope.locationMsgPage;
+        params.Count = COUNT;
+        params.status = [1];
+        chatService.searchChatMsg(params,function(res){
+            $timeout(function(){
+                $scope.locationMsgPage = res.Data.CurrentPage;
+                var list = res.Data.Data;
+                $scope.posMsgResultList = list;
+            });
+        })
+    }
+    // 开始定位/定位翻页
+    function goLocation(params){
+        if(!params){
+            params = {};
+            params.chatId = $scope.locationMsg.chatId;
+            params.EndTimestamp = $scope.locationMsg.timeStamp;
+            params.Count = COUNT;
+            params.Page = 0;
+            params.status = [1];
+            $scope.locationParams = params;
+        }else{
+            params.status = [1];
+        }
+        chatService.locationMsg(params,function(res){
+            $timeout(function(){
+                $scope.locationMsgPage = res.Data.CurrentPage;
+                if(res.Data.TotalCount){
+                    $scope.locationMsgTotalPage = parseInt((res.Data.TotalCount + COUNT - 1) / COUNT);
+                }
+                var list = res.Data.Data;
+                $scope.posMsgResultList = list;
+            });
+        })
+    }
+    // 分页方法，tpye : 1 搜索结果分页/获取chat聊天列表 2 : 定位结果分页
+    $scope.nextPage = function(type){
+        if(type == 0){
+            if($scope.page >= $scope.totalPage) return;
+            $scope.page ++;
+            goSearchChatMsg();
+        }else if(type == 3){
+            if($scope.locationMsgPage >= $scope.locationMsgTotalPage) return;
+            $scope.locationMsgPage ++;
+            $scope.locationParams.Page = $scope.locationMsgPage;
+            goLocationMsgPage();
+        }else{
+            if($scope.page >= $scope.totalPage) return;
+            $scope.page ++;
+            $scope.searching.Page = $scope.page;
+            goSearch($scope.searching);
+        }
+        $scope.pagerAction = 'next';
+    }
+    $scope.prevPage = function(type){
+        if(type == 0){
+            if($scope.page <= 1) return;
+            $scope.page --;
+            goSearchChatMsg();
+        }else if(type == 3){
+            if($scope.locationMsgPage <= 1) return;
+            $scope.locationMsgPage --;
+            $scope.locationParams.Page = $scope.locationMsgPage;
+            goLocationMsgPage();
+        }else{
+            if($scope.page <= 1) return;
+            $scope.page --;
+            $scope.searching.Page = $scope.page;
+            goSearch($scope.searching);
+        }
+        $scope.pagerAction = 'prev';
+    }
+    $scope.firstPage = function(type){
+        if(type == 0){
+            if($scope.page <= 1) return;
+            $scope.page = 1;
+            goSearchChatMsg();
+        }else if(type == 3){
+            if($scope.locationMsgPage <= 1) return;
+            $scope.locationMsgPage = 1;
+            $scope.locationParams.Page = $scope.locationMsgPage;
+            goLocationMsgPage();
+        }else{
+            if($scope.page <= 1) return;
+            $scope.page = 1;
+            $scope.searching.Page = 1;
+            goSearch($scope.searching);
+        }
+        $scope.pagerAction = 'prev';
+    }
+    $scope.lastPage = function(type){
+        if(type == 0){
+            if($scope.page >= $scope.totalPage) return;
+            $scope.page = $scope.totalPage;
+            goSearchChatMsg();
+        }else if(type == 3){
+            if($scope.locationMsgPage >= $scope.locationMsgTotalPage) return;
+            $scope.locationMsgPage = $scope.locationMsgTotalPage;
+            $scope.locationParams.Page = $scope.locationMsgPage;
+            goLocationMsgPage();
+        }else{
+            if($scope.page >= $scope.totalPage) return;
+            $scope.page = $scope.totalPage;
+            $scope.searching.Page = $scope.page;
+            goSearch($scope.searching);
+        }
+        $scope.pagerAction = 'next';
+    }
+    // 刷新
+   $scope.refresh = function(){
+        if($scope.status == 0){
+            $scope.selectedDate = new Date();
+            $scope.page = 0;
+            goSearchChatMsg();
+        }else{
+           $scope.search();
+        }
+    }
+    // 点击左侧聊天
+    $scope.getChatMsgList = function(chatId){
+        $scope.chatId = chatId;
+        $scope.page = 0;
+        $scope.searching.ChatId = chatId;
+        $scope.searching.Page = 0;
+        $scope.status = 1;
+        goSearch($scope.searching);
+    }
+    // 点击全部结果
+    $scope.clearChatId = function(){
+        $scope.page = 0;
+        $scope.chatId = '';
+        $scope.searching.ChatId = '';
+        $scope.searching.Page = 0;
+        goSearch($scope.searching);
+    }
+    // 显示/隐藏搜索后的聊天列表
+    $scope.toggleChats = function(){
+        $scope.showResultChats = !$scope.showResultChats;
+    }
+    // 点击搜索结果中的消息时，去定位消息
+    $scope.toLocationMsg = function(msg){
+        $scope.selectedMsg = msg;
+        if($scope.status != 0){
+            $scope.locationMsgId = msg.messageid;
+            $scope.locationMsg = msg;
+            $scope.status = 3;
+            goLocation();
+        }
+    }
+    $scope.selectMsg = function(msg){
+        $scope.selectedMsg = msg;
+    }
+    $scope.$on('document.click',function(){
+        $timeout(function(){
+            $scope.showRange = false;
+            $scope.datePickerStatus = false;
+        })
+    })
+    
+    // 消息操作
+    $scope.openServiceMsgLink = function(msg){
+        frameService.openMsg({
+            id : msg.messageid,
+            type : 0
+        })
+    }
+    // 文件操作相关
+    $scope.openFile = function(msg){
+        frameService.openMsg({
+            id : msg.messageid,
+            type : 0
+        });
+        // callCefMethod('chat/openMsg',)
+    }
+    $scope.openDir = function(msg){
+        frameService.openMsg({
+            id : msg.messageid,
+            type : 1
+        });
+    }
+    $scope.forwardMsg = function(msg){
+        var params = {};
+        params.action = 'forward';
+        params.msgId = msg.messageid;
+        frameService.open('forward','forward.html',params,600,550,true,langPack.getKey('forward'));
+    }
+    
+    $scope.playingVoice = '';
+    var playTimer;
+    $scope.playVoice = function(msg){
+        if($scope.playingVoice == msg){
+            $scope.playingVoice = undefined;
+            return;
+        }else{
+            $interval.cancel(playTimer);
+        }
+        $timeout(function(){
+            $scope.playingVoice = msg;
+            msg.playingTime = msg.content;
+        })
+        frameService.play(msg.messageid,function(res){
+            $timeout(function(){
+                msg.fileStatus = 7;
+                var time = parseInt(msg.content);
+                msg.playingTime = time;
+                playTimer = $interval(function(){
+                    if(msg.playingTime <= 0){
+                        $interval.cancel(playTimer);
+                        $scope.playingVoice = '';
+                        return;
+                    }
+                    msg.playingTime --;
+                },1000);
+            })
+        })
+    }
+    $scope.playVideo = function(msg){
+        frameService.play(msg.messageid,function(){
+        })
+    }
+    
+    $scope.openImage = function(msg,e){
+        console.log(msg);
+        var params = {};
+        var thisImg = e.target;
+        var nh = thisImg.naturalHeight , nw = thisImg.naturalWidth; // 图片源尺寸
+        var newSize = util.getNewSize(nw,nh);
+        var width = newSize.width;
+        var height = newSize.height;
+        params.width = width;
+        params.img = thisImg.src;
+        params.msgId = msg.messageid;
+        params.chatId = msg.chatId;
+        params.msgTime = msg.timeStamp;
+        params.height = height;
+        frameService.open('previewImg','previewImg.html',params,width + 20,height + 50,false,langPack.getKey('imgView'),false,true);
+    }
+    
+    $scope.chatWith = function(msg){
+        var chatId = msg.chatId;
+        frameService.notice({
+            chatId : chatId,
+            timestamp : util.getNow(),
+            frameId : 'main',
+            action : 'chatWith'
+        },function(res){
+            $scope.close();
+        })
+    }
+}]);

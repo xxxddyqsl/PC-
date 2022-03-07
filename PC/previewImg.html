@@ -1,0 +1,81 @@
+﻿<!DOCTYPE html>
+<html ng-app="im">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <title>SnailIM Login</title>
+    <script>
+        // var ROOT = 'res://js/';
+        var ROOT = '';
+        var PAGE = 'preview';
+        var loginController = loginController || {};
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/global.css" />');
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/jquery.scrollbar.css" />');
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/main.css" />');
+    </script>
+</head>
+<body class="bg no_select" ng-controller="appController" style="background:#f2f2f2;">
+    <!-- <div ng-controller="mainController" class="main_wrap large_file" ng-if="user"> -->
+    <!-- <div dev-tool></div> -->
+    <div ng-controller="mainController" class="main_wrap large_file">
+        <a draggable="false" class="resize" ng-if="windowStatus.status != 2"></a>
+        <div class="prev_view_title" style="background:#3a3e47;">
+            <p class="frame_title"></p>
+            <a draggable="false" class="min_frame white" ng-click="min()"><i></i></a>
+            <a href="javascript:;" draggable="false" class="max_iframe" ng-click="maxWin()" title="{{windowStatus.status == 2 ? langPack.getKey('restorewin') : langPack.getKey('maxwin')}}"><i></i></a>
+            <a draggable="false" class="close_frame white" ng-click="close()"><i></i></a>
+        </div>
+        <div id="img_view_wrap" class="img_view_container"></div>
+    </div>
+    <script>
+        document.write('<script src="'+ROOT+'js/main.js">'+'<\/script>');
+    </script>
+    <script type="text/ng-template" id="imagePreview.html">
+        <div preview-images class="img_pre_con" current="current" image-list="imageList" id="image_preview_root" next="next" prev="prev"></div>
+    </script>
+    <script type="text/ng-template" id="imagePreviewContent.html">
+        <div class="preview_mask"></div>
+        <div class="global_mask" ng-if="loaded == 0">
+            <div class="roate_loading"></div>
+        </div>
+        <div class="img_preview_warp" ng-style="thumbBg">
+            <p class="image_scale" ng-show="showScale" ng-bind-html="scale | imageScaleFilter" style="display:none;" ng-style="{display:loaded == 1?'block' : 'none'}"></p>
+            <p class="image_scale" style="display:none;width:140px;margin-left:-70px;" ng-style="{display:loaded == 2?'block' : 'none'}" ng-lang langkey="imageLoadFail"></p>
+            <p class="image_scale" ng-show="boundaryTip" ng-bind-html="boundaryTip" style="display:none;width:200px;margin-left:-100px;" ng-style="{display:boundaryTip?'block' : 'none'}"></p>
+            
+            <a draggable="false" href="javascript:;" class="quick_next" ng-click="nextImg($event)"></a>
+            <a draggable="false" href="javascript:;" class="quick_prev" ng-click="prevImg($event)"></a>
+            <canvas class="" id="img_preview_dom" ng-style="{display:isGif ? 'none':'block'}"></canvas>
+            <div class="img_con" id="img_parent" stop-bubble ng-show="loaded == 1">
+                <span ng-if="flag"></span>
+                <!-- <canvas class="" id="img_preview_dom"></canvas> -->
+                <img src="" id="source_img" class="" style="display:none;" ng-style="{display:isGif ? 'block':'none'}"/>
+            </div>
+            <div class="thumb_wrap">
+                <canvas class="" id="thumb_canvas" width="100" height="100" ng-style="{display:isGif ? 'none':'block'}"></canvas>
+                <div class="toper">
+                    <canvas class="" id="cover_canvas" style="position:absolute;left:0;top:0;"></canvas>
+                    <img src="" id="thumb_img" class="" style="display:none;" ng-style="{display:isGif ? 'block':'none'}"/>
+                    <div style="position:absolute;width:100%;height:100%;overflow:hidden;" id="thumb_div" class="inner">
+                        <!-- <img src="" id="thumb_img" class=""/> -->
+                    </div>
+                    <!-- <div class="mask"></div> -->
+                </div>
+            </div>
+        </div>
+        <div class="img_oper" stop-bubble>
+            <div class="opers">
+                <a draggable="false" href="javascript:;" class="scale"  ng-if="!sourceSize" ng-click="goSourceSize()" title="{{langPack.getKey('sourceSize')}}">1:1</a>
+                <a draggable="false" href="javascript:;" class="source_size" ng-lang langkey="optimumSize" ng-click="goScale()" ng-if="sourceSize"></a>
+                <a draggable="false" href="javascript:;" class="zoom_out" ng-lang langkey="zoomout" ng-click="zoomOut($event)"></a>
+                <a draggable="false" href="javascript:;" class="zoom_in" ng-lang langkey="zoomin" ng-click="zoomIn($event)"></a>
+                <a draggable="false" href="javascript:;" class="prev_img" ng-class="{disable:current <= 0}" ng-click="prevImg($event)" ng-lang langkey="prevImg"></a>
+                <a draggable="false" href="javascript:;" class="next_img" ng-class="{disable:current >= imageList.length - 1}" ng-click="nextImg($event)" ng-lang langkey="nextImg"></a>
+                <a draggable="false" href="javascript:;" class="roate_img" ng-click="roate(-90)" ng-lang langkey="rotateAntiWise" ng-if="!isGif"></a>
+                <a draggable="false" href="javascript:;" class="anti_roate_img" ng-click="roate(90)" ng-lang langkey="rotateWise" ng-if="!isGif"></a>
+                <a draggable="false" href="javascript:;" class="save_img" ng-click="saveImg()" ng-lang langkey="saveImg"></a>
+                <a draggable="false" style="width:auto;" class="scale" ng-bind-html="thisImagePos" style="width:100px;"></a>
+            </div>
+        </div>
+    </script>
+</body>
+</html>

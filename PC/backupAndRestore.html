@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html ng-app="im">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <title>SnailIM Login</title>
+    <script>
+        // var ROOT = 'res://js/';
+        var ROOT = '';
+        var PAGE = 'backUpAndRestore';
+        var loginController = loginController || {};
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/global.css" />');
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/jquery.scrollbar.css" />');
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/main.css" />');
+    </script>
+</head>
+<body class="bg" ng-controller="appController" style="background:#f5f6f7">
+    <div ng-controller="mainController" class="main_wrap" ng-if="user">
+        <p class="frame_title" ng-lang langkey="{{titleKey}}"></p>
+        <a draggable="false" class="close_frame " ng-click="close()"><i></i></a>
+        <div class="backup_restore">
+            <div class="backup" ng-style="{display:action == 'backup' ? 'block' : 'none'}" style="display:none"ng-style="{display:'block' : 'none'}">
+                <div class="status_wrap prepear" ng-if="status == 1">
+                    <img draggable="false" src="img/phone1.png" />
+                    <p ng-lang langkey="backupTips" class="tips"></p>
+                </div>
+                <div class="status_wrap transmission" ng-if="status == 2">
+                    <img draggable="false" src="img/pc1.png" />
+                    <p><span ng-lang langkey="backuped"></span>(<span ng-bind="persent"></span>)(<span ng-bind="speed"></span>)</p>
+                    <p ng-lang langkey="notCloseApp"></p>
+                </div>
+                <div class="status_wrap trans_error" ng-if="status == 3">
+                    <img draggable="false" src="img/pc2.png" />
+                    <p ng-lang langkey="transError"></p>
+                </div>
+                <div class="status_wrap complete" ng-if="status == 4">
+                    <img draggable="false" src="img/pc3.png" />
+                    <p ng-lang langkey="backupComplete"></p>
+                    <a href="javascript:;" ng-lang langkey="finish"></a>
+                </div>
+            </div>
+            <div class="restore" ng-style="{display:action == 'restore' ? 'block' : 'none'}" style="display:none">
+                <div class="status_wrap prepear" style="padding-top:30px;margin-left:14px;" ng-if="status == 1">
+                    <img draggable="false" src="img/phone1.png" />
+                    <p ng-lang langkey="restoreTips" class="tips"></p>
+                </div>
+                <div class="status_wrap transmission" ng-if="status == 2">
+                    <img draggable="false" src="img/phone2.png" />
+                    <p><span ng-lang langkey="backuped"></span>(<span ng-bind="persent"></span>)(<span ng-bind="speed"></span>)</p>
+                    <p ng-lang langkey="notCloseApp"></p>
+                </div>
+                <div class="status_wrap trans_error" ng-if="status == 3">
+                    <img draggable="false" src="img/phone4.png" />
+                    <p ng-lang langkey="transError"></p>
+                </div>
+                <div class="status_wrap complete" ng-if="status == 4">
+                    <img draggable="false" src="img/phone3.png" />
+                    <p ng-lang langkey="restoreComplete"></p>
+                    <p ng-lang langkey="notCloseApp"></p>
+                </div>
+            </div>
+            <div class="manager" ng-style="{display:action == 'manager' ? 'block' : 'none'}" style="display:none">
+                <div class="manager_head">
+                    <span ng-lang langkey="currentBackUpDir"></span>
+                    <input type="text" ng-model="setting.MsgBackup" readonly="readonly"/>
+                    <a draggable="false" href="javascript:;" ng-lang langkey="modify" ng-click="modifyPath()" class="modify_btn"></a>
+                </div>
+                <p ng-lang langkey="managerTips" class="m_tips color7"></p>
+                <div class="table_wrap">
+                    <table class="backup_table">
+                        <col style="width:25%"></col>
+                        <col style="width:25%"></col>
+                        <col style="width:25%"></col>
+                        <col style="width:25%"></col>
+                        <thead>
+                            <tr>
+                                <td ng-lang langkey="backupName" class="color7"></td>
+                                <td ng-lang langkey="firstBackupTime" class="color7"></td>
+                                <td ng-lang langkey="lastBackupTime" class="color7"></td>
+                                <td ng-lang langkey="operate" class="color7"></td>
+                            </tr>
+                        </thead>
+                    </table>
+                    <div class="table_content_wrap">
+                        <table class="backup_table">
+                            <col style="width:25%"></col>
+                            <col style="width:25%"></col>
+                            <col style="width:25%"></col>
+                            <col style="width:25%"></col>
+                            <tbody>
+                                <tr class="select">
+                                    <td>ios_record.zip</td>
+                                    <td>2017.7.21</td>
+                                    <td>2017.7.21</td>
+                                    <td><a draggable="false" href="javascript:;" class="delete_backup" ng-lang langkey="deleteBackup"></a></td>
+                                </tr>
+                                <tr class="">
+                                    <td>ios_record.zip</td>
+                                    <td>2017.7.21</td>
+                                    <td>2017.7.21</td>
+                                    <td><a draggable="false" href="javascript:;" class="delete_backup" ng-lang langkey="deleteBackup"></a></td>
+                                </tr>
+                                <tr class="">
+                                    <td>ios_record.zip</td>
+                                    <td>2017.7.21</td>
+                                    <td>2017.7.21</td>
+                                    <td><a draggable="false" href="javascript:;" class="delete_backup" ng-lang langkey="deleteBackup"></a></td>
+                                </tr>
+                                <tr class="">
+                                    <td>ios_record.zip</td>
+                                    <td>2017.7.21</td>
+                                    <td>2017.7.21</td>
+                                    <td><a draggable="false" href="javascript:;" class="delete_backup" ng-lang langkey="deleteBackup"></a></td>
+                                </tr>
+                                <tr class="">
+                                    <td>ios_record.zip</td>
+                                    <td>2017.7.21</td>
+                                    <td>2017.7.21</td>
+                                    <td><a draggable="false" href="javascript:;" class="delete_backup" ng-lang langkey="deleteBackup"></a></td>
+                                </tr>
+                                <tr class="">
+                                    <td>ios_record.zip</td>
+                                    <td>2017.7.21</td>
+                                    <td>2017.7.21</td>
+                                    <td><a draggable="false" href="javascript:;" class="delete_backup" ng-lang langkey="deleteBackup"></a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.write('<script src="'+ROOT+'js/main.js">'+'<\/script>');
+    </script>
+</body>
+</html>

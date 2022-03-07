@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html ng-app="im">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <title>SnailIM Login</title>
+    <script>
+        // var ROOT = 'res://js/';
+        var ROOT = '';
+        var PAGE = 'setting';
+        var loginController = loginController || {};
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/global.css" />');
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/jquery.scrollbar.css" />');
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/main.css" />');
+    </script>
+</head>
+<body class="bg no_select" ng-controller="appController" style="background:#fff">
+    <div ng-controller="mainController" class="main_wrap seeting_page" style="height:100%;">
+        <p class="frame_title" ng-lang langkey="setting"></p>
+        <a draggable="false" class="close_frame" ng-click="close()"><i></i></a>
+        <!-- <a draggable="false" class="min_frame" ng-click="min()"><i></i></a> -->
+        <div class="setting" stop-bubble ng-style="{display:rendered && dataReady ? 'block' : 'none'}" style="display:none;">
+            <div class="setting_wrap">
+                <div class="left_nav">
+                    <ul>
+                        <li><a draggable="false" href="javascript:;" ng-lang langkey="setting.login" ng-click="goContent('login')"></a></li>
+                        <li><a draggable="false" href="javascript:;" ng-lang langkey="setting.hotkey" ng-click="goContent('hotkey')"></a></li>
+                        <li><a draggable="false" href="javascript:;" ng-lang langkey="setting.sound" ng-click="goContent('sound')"></a></li>
+                        <!-- <li><a draggable="false" href="javascript:;" ng-lang langkey="setting.backup" ng-click="goContent('backup')"></a></li> -->
+                    </ul>
+                </div>
+                <div class="nav_content">
+                    <div class="nav_item" id="login">
+                        <div class="nav_item_name"><span ng-lang langkey="setting.login"></span>:</div>
+                        <div class="nav_item_options">
+                            <div class="nav_item_option switch_option">
+                                <div class="on-off" ng-class="{on : setting.AutoRun , off : !setting.AutoRun}" ng-click="switchSetting('AutoRun','')">
+                                    <div class="switch no_an" ng-class="{s_on : setting.AutoRun , s_off : !setting.AutoRun}"></div>
+                                </div>
+                                <span ng-lang langkey="autoStart"></span>
+                            </div>
+                            <div class="nav_item_option switch_option">
+                                <div class="on-off" ng-class="{on : setting.AutoLogin , off : !setting.AutoLogin}" ng-click="switchSetting('AutoLogin','')">
+                                    <div class="switch no_an" ng-class="{s_on : setting.AutoLogin , s_off : !setting.AutoLogin}"></div>
+                                </div>
+                                <span ng-lang langkey="autoLogin"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="nav_item" id="hotkey">
+                        <div class="nav_item_name"><span ng-lang langkey="setting.hotkey"></span>:</div>
+                        <div class="nav_item_options">
+<!--                             <div class="nav_item_option switch_option">
+                                <div class="on-off" ng-class="{on : setting.Hotkey.ExtractMsg , off : !setting.Hotkey.ExtractMsg}" ng-click="switchSetting('Hotkey','ExtractMsg',$event)">
+                                    <div class="switch no_an" ng-class="{s_on : setting.Hotkey.ExtractMsg , s_off : !setting.Hotkey.ExtractMsg}"></div>
+                                </div>
+                                <span ng-lang langkey="getMsg"></span>
+                                <span class="input_wrap" ng-if="setting.Hotkey.ExtractMsg"><input hot-key type="text" class="key_input" ng-model="setting.Hotkey.ExtractMsgValue" ng-save="saveSetting('Hotkey','ExtractMsgValue')"/></span>
+                                <span class="input_wrap" ng-if="!setting.Hotkey.ExtractMsg"><input hot-key type="text" class="key_input" disabled="disabled"/></span>
+                                <span class="same_key" ng-if="sameKeys.ExtractMsg" class="has_same_hotkey" ng-lang langkey="hasSameHotKey"></span>
+                            </div> -->
+                            <div class="nav_item_option switch_option" ng-repeat="hotkey in setting.Hotkey">
+                                <div class="on-off" ng-class="{on : hotkey.Enabled , off : !hotkey.Enabled}" ng-click="switchSetting('Hotkey',hotkey.Name,$event)">
+                                    <div class="switch no_an" ng-class="{s_on : hotkey.Enabled , s_off : !hotkey.Enabled}"></div>
+                                </div>
+                                <span ng-bind-html="hotkey.Desc"></span>
+                                <span class="input_wrap" ng-if="hotkey.Enabled"><input hot-key type="text" class="key_input" ng-model="hotkey.Value" ng-blur="inputBlur('Hotkey','{{hotkey.Name}}',$event)" ng-save="saveSetting('Hotkey','{{hotkey.Name}}')"/></span>
+                                <span class="input_wrap" ng-if="!hotkey.Enabled"><input hot-key type="text" class="key_input" disabled="disabled"/></span>
+                                <span class="same_key" ng-if="isSameWithOther(hotkey)" class="has_same_hotkey" ng-lang langkey="hasSameHotKey"></span>
+                            </div>
+                            <!-- <div class="nav_item_option switch_option">
+                                <div class="on-off" ng-class="{on : setting.Hotkey.Capture , off : !setting.Hotkey.Capture}" ng-click="switchSetting('Hotkey','Capture',$event)">
+                                    <div class="switch no_an" ng-class="{s_on : setting.Hotkey.Capture , s_off : !setting.Hotkey.Capture}"></div>
+                                </div>
+                                <span ng-lang langkey="capture"></span>
+                                <span class="input_wrap" ng-if="setting.Hotkey.Capture"><input hot-key type="text" class="key_input" ng-model="setting.Hotkey.CaptureValue" ng-save="saveSetting('Hotkey','CaptureValue')"/></span>
+                                <span class="input_wrap" ng-if="!setting.Hotkey.Capture"><input hot-key type="text" class="key_input" disabled="disabled"/></span>
+                                <span class="same_key" ng-if="sameKeys.Capture" class="has_same_hotkey" ng-lang langkey="hasSameHotKey"></span>
+                            </div>
+                            <div class="nav_item_option switch_option">
+                                <div class="on-off" ng-class="{on : setting.Hotkey.QuickSend , off : !setting.Hotkey.QuickSend}" ng-click="switchSetting('Hotkey','QuickSend',$event)">
+                                    <div class="switch no_an" ng-class="{s_on : setting.Hotkey.QuickSend , s_off : !setting.Hotkey.QuickSend}"></div>
+                                </div>
+                                <span ng-lang langkey="quickSend"></span>
+                                <span class="input_wrap" ng-if="setting.Hotkey.QuickSend"><input hot-key type="text" class="key_input" ng-model="setting.Hotkey.QuickSendValue" ng-save="saveSetting('Hotkey','QuickSendValue')"/></span>
+                                <span class="input_wrap" ng-if="!setting.Hotkey.QuickSend"><input hot-key type="text" class="key_input" disabled="disabled"/></span>
+                                <span class="same_key" ng-if="sameKeys.QuickSend" class="has_same_hotkey" ng-lang langkey="hasSameHotKey"></span>
+                            </div>
+                            <div class="nav_item_option switch_option">
+                                <div class="on-off" ng-class="{on : setting.Hotkey.PressToSay , off : !setting.Hotkey.PressToSay}" ng-click="switchSetting('Hotkey','PressToSay',$event)">
+                                    <div class="switch no_an" ng-class="{s_on : setting.Hotkey.PressToSay , s_off : !setting.Hotkey.PressToSay}"></div>
+                                </div>
+                                <span ng-lang langkey="recordingVoice"></span>
+                                <span class="input_wrap" ng-if="setting.Hotkey.PressToSay"><input hot-key type="text" class="key_input" ng-model="setting.Hotkey.PressToSayValue" ng-save="saveSetting('Hotkey','PressToSayValue')"/></span>
+                                <span class="input_wrap" ng-if="!setting.Hotkey.PressToSay"><input hot-key type="text" class="key_input" disabled="disabled"/></span>
+                                <span class="same_key" ng-if="sameKeys.PressToSay" class="has_same_hotkey" ng-lang langkey="hasSameHotKey"></span>
+                            </div>
+                            <div class="nav_item_option switch_option">
+                                <div class="on-off" ng-class="{on : setting.Hotkey.OpenChat , off : !setting.Hotkey.OpenChat}" ng-click="switchSetting('Hotkey','OpenChat',$event)">
+                                    <div class="switch no_an" ng-class="{s_on : setting.Hotkey.OpenChat , s_off : !setting.Hotkey.OpenChat}"></div>
+                                </div>
+                                <span ng-lang langkey="openChatHistory"></span>
+                                <span class="input_wrap" ng-if="setting.Hotkey.OpenChat"><input hot-key type="text" class="key_input" ng-model="setting.Hotkey.OpenChatValue" ng-save="saveSetting('Hotkey','OpenChatValue')"/></span>
+                                <span class="input_wrap" ng-if="!setting.Hotkey.OpenChat"><input hot-key type="text" class="key_input" disabled="disabled"/></span>
+                                <span class="same_key" ng-if="sameKeys.OpenChat" class="has_same_hotkey" ng-lang langkey="hasSameHotKey"></span>
+                            </div> -->
+                            <a draggable="false" href="javascript:;" ng-lang langkey="setToDefault" class="blue_line set_to_default" ng-click="setToDefault()"></a>
+                            <p class="spliter"></p>
+                            <div class="other_options">
+                                <p><span ng-lang langkey="sendMsgHotKey"></span>:</p>
+                                <div class="other_option">
+                                    <label class="radios">
+                                        <input type="radio" name="switch_sendkey" ng-model="setting.SendMsgMode" value="1" ng-click="switchSendType()"/>
+                                        <i></i>
+                                        <span ng-lang langkey="CESend"></span>
+                                    </label>
+                                    <label class="radios">
+                                        <input type="radio"  name="switch_sendkey" ng-model="setting.SendMsgMode" value="0" ng-click="switchSendType()"/>
+                                        <i></i>
+                                        <span ng-lang langkey="ESend"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="nav_item" id="sound">
+                        <div class="nav_item_name"><span ng-lang langkey="setting.sound"></span>:</div>
+                        <div class="nav_item_options">
+                            <div class="nav_item_option switch_option">
+                                <div class="on-off"  ng-class="{on : setting.PlaySound , off : !setting.PlaySound}" ng-click="switchSetting('PlaySound','',$event)">
+                                    <div class="switch no_an" ng-class="{s_on : setting.PlaySound , s_off : !setting.PlaySound}"></div>
+                                </div>
+                                <span ng-lang langkey="closeTone"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="nav_item" id="backup" style="visibility:hidden;">
+                        <div class="nav_item_name"><span ng-lang langkey="setting.backup"></span>:</div>
+                        <div class="nav_item_options btn_option">
+                            <div class="nav_item_option">
+                                <span  ng-lang langkey="backupToPC"></span>
+                                <a draggable="false" href="javascript:;" class="set_btn" ng-lang langkey="backupBtn" ng-click="goBackUp()"></a>
+                            </div>
+                            <div class="nav_item_option">
+                                <span  ng-lang langkey="recoverToPhone"></span>
+                                <a draggable="false" href="javascript:;" class="set_btn" ng-lang langkey="recoverBtn" ng-click="goRestore()"></a>
+                            </div>
+                            <div class="nav_item_option">
+                                <span  ng-lang langkey="managerBackup"></span>
+                                <a draggable="false" href="javascript:;" class="set_btn" ng-lang langkey="managerBackupBtn" isLast="1" ng-click="managerBackUp()"></a>
+                            </div>
+                            <div style="height:245px"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.write('<script src="'+ROOT+'js/main.js">'+'<\/script>');
+    </script>
+</body>
+</html>

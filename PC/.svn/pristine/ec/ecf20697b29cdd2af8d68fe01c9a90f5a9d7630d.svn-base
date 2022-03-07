@@ -1,0 +1,122 @@
+﻿<!DOCTYPE html>
+<html ng-app="im">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <title>SnailIM Login</title>
+    <style>
+        .ng-hide{display:none !important;}
+    </style>
+    <script>
+        // var ROOT = 'res://js/';
+        var _time = new Date().getTime();
+        var ROOT = '';
+        var PAGE = 'userProfile';
+        var loginController = loginController || {};
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/global.css" />');
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/jquery.scrollbar.css" />');
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/main.css" />');
+    </script>
+</head>
+<body class="bg" ng-controller="appController" style="background:#fff">
+    <div ng-controller="mainController" class="main_wrap emp_profile_wrap">
+        <a draggable="false" class="close_frame white" ng-click="close()"><i></i></a>
+        <div class="emp_profile ng-hide" stop-bubble ng-show="emp">
+            <div class="profile_top">
+                <a draggable="false" href="javascript:;" class="star ng-hide" ng-class="{stared : emp.Favorite}" ng-show="emp.Id != user.Id && !isBroad" ng-click="setFavorite()"></a>
+                <!-- <a href="javascript:;" class="del_friend" ng-show="(emp.Id != user.Id) && isFriend" ng-click="delFriend(concatId)" title="{{isFriend ? langPack.getKey('removeFriends') : langPack.getKey('addToFriends')}}"></a> -->
+                <div class="user_datas">
+                    <div class="avatar">
+                        <img emp-avatar avatar="emp.SAvatar" emp="emp" action="none" cache="0"/>
+                    </div>
+                    <div class="detail_info">
+                        <p class="detail_name" ng-show="!isFriend"><span ng-bind="emp.Name" class="name"></span><span class="detail_sex" ng-class="{woman:emp.Gender == '1'}"></span></p>
+                        <p class="detail_name" ng-show="isFriend" ng-bind="emp.Name"></p>
+                        <p ng-show="emp.Id != user.Id && !changeSignFlag" class="detail_sign ng-hide" ng-bind="emp.Signature || langPack.getKey('noSign')" title="{{emp.Signature}}"></p>
+                        <p ng-show="emp.Id == user.Id && !changeSignFlag" class="detail_sign ng-hide" ng-bind="emp.Signature || langPack.getKey('noSign')" ng-click="goEditSign()" title="{{emp.Signature}}"></p>
+                        <p class="detail_sign ng-hide" ng-show="emp.Id == user.Id && changeSignFlag">
+                            <input type="text" ng-model="inputSignature" ng-blur="submitSign()" class="sign_edit"/>
+                        </p>
+                        <p class="detail_remark" ng-show="isFriend && emp.SRemark"><span ng-bind="langPack.getKey('remark') + '：'+emp.SRemark"></span><i></i></p>
+                    </div>
+                    <div class="clear"></div>
+                </div>
+                <div class="detail_phones ng-hide" ng-show="isFriend || (emp.Id == user.Id)">
+                    <div class="phone_div">
+                        <i></i>
+                        <span ng-bind="emp.Mobile"></span>
+                    </div>
+                    <div class="email_div">
+                        <i></i>
+                        <span class="email_span showing ng-hide" ng-show="emp.Id != user.Id " ng-bind="emp.Email"></span>
+                        <span class="email_span showing ng-hide" ng-show="emp.Id == user.Id && emp.Email && !changeEmailFlag" ng-click="goEdit()" ng-bind="emp.Email"></span>
+                        <span class="email_span blank ng-hide" ng-show="emp.Id == user.Id && !emp.Email && !changeEmailFlag" ng-lang langkey="clickToEditEmail" ng-click="goEdit()"></span>
+                        <span class="email_span editing ng-hide" ng-show="emp.Id == user.Id && changeEmailFlag">
+                            <input type="text" ng-model="inputEmail" ng-blur="submitEmail()" class="email_edit"/>
+                        </span>
+                    </div>
+                    <div class="clear"></div>
+                </div>
+            </div>
+            <div class="profile_middle" ng-show="emp" ng-style="{top:!(isFriend || (emp.Id == user.Id)) ? '135px' : '181px',bottom:user.Status == 0 && user.Id != emp.Id ? '60px' : '20px'}"> 
+                <a draggable="false" href="javascript:;" class="switch_ent prev_ent ng-hide" ng-class="{disable:idx == 0}" ng-click="scrollEntByArrow(-1)" ng-show="emp.Staffs.length > 1" stop-bubble></a>
+                <a draggable="false" href="javascript:;" class="switch_ent next_ent ng-hide" ng-class="{disable:idx == emp.Staffs.length - 1}" ng-click="scrollEntByArrow(1)" ng-show="emp.Staffs.length > 1" stop-bubble></a>
+                <div class="user_ents">
+                    <div class="ents_wrap" ng-style="{width:410*emp.Staffs.length+'px'}">
+                        <div ng-repeat="ent in emp.Staffs track by $index" class="userent">
+                            <div class="ent_scroll scrollbar-dynamic">
+                                <p class="ent_name" ng-bind="ent.Company.Name"></p>
+                                <div class="ent_prop_wrap">
+                                    <p class="field ng-hide" ng-show="ent.Name">
+                                        <span class="field_name" ng-lang langkey="userName"></span>
+                                        <span class="field_val" ng-bind="ent.Name"></span>
+                                    </p>
+                                    <p class="field ng-hide" ng-show="ent.JobTitle">
+                                        <span class="field_name" ng-lang langkey="userPost"></span>
+                                        <span class="field_val" ng-bind="ent.JobTitle"></span>
+                                    </p>
+                                    <p class="field ng-hide" ng-show="ent.Email">
+                                        <span class="field_name" ng-lang langkey="userEntEmail"></span>
+                                        <span class="field_val" ng-bind="ent.Email"></span>
+                                    </p>
+                                    <p class="field ng-hide" ng-show="ent.No">
+                                        <span class="field_name" ng-lang langkey="userEmpNo"></span>
+                                        <span class="field_val" ng-bind="ent.No"></span>
+                                    </p>
+                                    <p class="field ng-hide" ng-show="ent.address">
+                                        <span class="field_name" ng-lang langkey="userAddress"></span>
+                                        <span class="field_val" ng-bind="ent.address"></span>
+                                    </p>
+                                    <p ng-repeat="dept in ent.Departments" class="field ng-hide" ng-show="ent.Departments.length">
+                                        <span class="field_name" ng-lang langkey="userDept"></span>
+                                        <span class="field_val"><i content="dept.LevelInfo" width="250" ecllipse-directive class="name"></i><i ng-click="goDept(dept)" class="go_dept"></i></span>
+                                    </p>
+                                    <p class="field ng-hide" ng-show="ent.Leader">
+                                        <span class="field_name" ng-lang langkey="userLeader"></span>
+                                        <span class="field_val"><i ng-bind="ent.Leader.Name" class="name"></i><i ng-click="openUserProfile(ent.Leader)" class="go_user"></i></span>
+                                    </p>
+                                    <p class="field ng-hide" ng-repeat="prop in ent.ExtendProps" ng-show="ent.ExtendProps.length">
+                                        <span class="field_name" ng-bind="prop.Key"></span>
+                                        <span class="field_val" ng-bind="prop.Value"></span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="clear"></div>
+                    </div>
+                </div>
+                <div class="ent_navs ng-hide" ng-show="emp.Staffs.length > 1">
+                    <a draggable="false" href="javascript:;" class="ent_nav" ng-repeat="ent in emp.Staffs track by $index" ng-class="{blue : $index == idx}" ng-click="scrollEnt($index)"><i></i></a>
+                </div>
+            </div>
+            <div class="ent_navs ng-hide" ng-show="emp.Staffs.length <= 1" style="height:25px;"></div>
+            <div class="profile_bottom">
+                <a draggable="false" href="javascript:;" class="send_email_btn ng-hide"  ng-mail-to emails="emp.SMailAccount" style="display:none;" ng-lang langkey="sendEmail"></a>
+                <a draggable="false" href="javascript:;" class="send_msg_btn ng-hide" ng-click="chatWith()" ng-lang langkey="sendMessage" ng-show="emp.Status == 0 && user.Id != emp.Id"></a>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.write('<script src="'+ROOT+'js/main.js">'+'<\/script>');
+    </script>
+</body>
+</html>

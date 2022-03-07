@@ -1,0 +1,146 @@
+﻿<!DOCTYPE html>
+<html ng-app="im">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <title>SnailIM Login</title>
+    <script>
+        // var ROOT = 'res://js/';
+        var ROOT = '';
+        var PAGE = 'choose';
+        var loginController = loginController || {};
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/global.css" />');
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/jquery.scrollbar.css" />');
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/main.css" />');
+    </script>
+     <!-- 加载显示隐藏 处理方案 否则隐藏的元素会闪烁 在需要隐藏的div标签中添加 ng-cloak -->
+     <style>
+        [ng-cloak] {
+            display: none !important
+        }
+    </style>
+</head>
+<body class="bg" ng-controller="appController" style="background:#fff">
+    <div ng-controller="mainController" class="main_wrap" ng-if="user">
+        <p class="choose_title" ng-lang langkey="chooseUser"></p>
+        <a draggable="false" class="close_frame" ng-click="close()"><i></i></a>
+        <div class="choose_wrap ">
+            <div class="choose_left">
+                <div class="search_area">
+                    <input type="text" ng-input="search()" ng-keydown="onKeyDown($event)" ng-model="keyword" ng-lang langkey="search"/>
+                    <a draggable="false" href="javascript:;" class="search_btn" ng-if="!keyword"></a>
+                    <a draggable="false" href="javascript:;" class="clear_search" ng-if="keyword" ng-click="clearSearch()"></a>
+                </div>
+                <div class="search_res" ng-style="{display:searchResultUser.length?'block':'none'}" style="display:none;">
+                    <div class="concat_item" ng-repeat="user in searchResultUser" ng-class="{select:user.active}" context-menu-hepler menu-type="friend1" menu-data="{{friend.Id}}" ng-click="selectThis(user)">
+                        <img emp-avatar emp="user"/>
+                        <span ng-bind="user.Name"></span>
+                    </div>
+                </div>
+                <div class="source_cate">
+                    <div class="concat_wrap">
+                        <!-- 多人视频会议邀请显示 当前群成员列表 -->
+                        <div class="concat_block" ng-cloak ng-if='groupObj.groupName'>
+                            <p class="concat_title" ng-lang  ng-click="getGroupList()" style=" display: inline-block; -webkit-line-clamp: 1;
+                            -webkit-box-orient: vertical;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
+                            width: 70%;" ng-class="{show : show.grouplist}">{{groupObj.groupName}}</p>
+                            <div class="concats" ng-style="{display:show.grouplist ? 'block' : 'none'}" style="display:none">
+                                <div class="concat_item" ng-repeat="item in  groupObj.grouplist" ng-class="{select:select.Id == item.Id}" context-menu-hepler menu-type="friend1" menu-data="{{item.Id}}" ng-click="selectThis(item)">
+                                    <img draggable="false" ng-src="{{item.Avatar}}"/>
+                                    <span ng-bind="item.Name"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="concat_block">
+                            <p class="concat_title" ng-lang langkey="friends" ng-click="getFriends()" ng-class="{show : show.friend}">我的好友</p>
+                            <div class="concats" ng-style="{display:show.friend ? 'block' : 'none'}" style="display:none">
+                                <div class="concat_item" ng-repeat="friend in friends"ng-class="{select:select.Id == friend.Id}" context-menu-hepler menu-type="friend1" menu-data="{{friend.Id}}" ng-click="selectThis(friend)">
+                                    <img draggable="false" ng-src="{{friend.Avatar}}"/>
+                                    <span ng-bind="friend.Name"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="concat_block">
+                            <p class="concat_title" ng-lang langkey="fcontacts" ng-click="getFavorite(0)" ng-class="{show : show.user}">常用联系人</p>
+                            <div class="concats" ng-style="{display:show.user ? 'block' : 'none'}" style="display:none">
+                                <div class="concat_item" ng-repeat="user in users"ng-class="{select:select.Id == user.Id}" context-menu-hepler menu-type="favorite1" menu-fav="user" menu-data="{{user.Id}}" ng-click="selectThis(user)">
+                                    <img draggable="false" ng-src="{{user.Avatar}}"/>
+                                    <span ng-bind="user.Name"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="concat_block">
+                            <p class="concat_title" ng-lang langkey="fdepts" ng-click="getFavorite(1)" ng-class="{show : show.dept}">常用部门</p>
+                            <div class="concats" id="fav_depts" ng-show="show.dept">
+                            </div>
+                        </div>
+                        <div class="concat_block">
+                            <p class="concat_title" ng-lang langkey="fgroups" ng-click="getFavorite(2)" ng-class="{show : show.group}">常用群聊</p>
+                            <div class="concats" ng-style="{display:show.group ? 'block' : 'none'}" style="display:none">
+                                <div class="concat_item group_item" ng-repeat="group in groups" ng-class="{select:select.Id == group.Id}" context-menu-hepler menu-type="favorite1" menu-fav="group" menu-data="{{group.Id}}">
+                                    <img draggable="false" ng-src="{{group.Avatar}}"/>
+                                    <span ng-bind="group.Name || group.ShowName"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ents">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="choose_right">
+                <p class="select_users">
+                    <span ng-lang langkey="selectedUsers"></span>
+                    <span ng-if="selected.length" ng-bind-html="selected.length"></span>
+                    <span ng-if="selected.length" ng-lang langkey="selectedUsersUnit"></span>
+                </p>
+                <div class="selected_user_wrap">
+                    <div class="selected_item" ng-repeat="user in selected" ng-style="{display:selected.length ? 'block' : 'none'}" style="display:none">
+                        <img draggable="false" ng-src="{{user.Avatar}}" />
+                        <span ng-bind="user.Name"></span>
+                        <a draggable="false" href="javascript:;" ng-if="user.deleteAble" ng-click="deleteThis(user)" class="del_user"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="choose_btns">
+            <a draggable="false" href="javascript:;" class="cancel" ng-lang langkey="cancel" ng-click="close()"></a>
+            <a draggable="false" href="javascript:;" class="confirm " ng-lang langkey="confirm" ng-click="submit()"></a>
+        </div>
+    </div>
+    <script>
+        document.write('<script src="'+ROOT+'js/main.js">'+'<\/script>');
+    </script>
+    <script type="text/ng-template" id="ent.html">
+        <div class="ent_tree" id="root_{{ent.Id}}">
+            <div class="ent_dept root" ng-bind="ent.Name" did="{{ent.Id}}" cid="{{ent.CompanyId}}" isroot="true"context-menu-hepler menu-type="dept" menu-data="{{ent.Id}}"></div>
+            <div class="childs"></div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="favDept.html">
+        <div class="ent_tree" id="fav_root_{{ent.Id}}">
+            <div class="ent_dept root" ng-bind="ent.Name" did="{{ent.Id}}" cid="{{ent.CompanyId}}" isroot="true" context-menu-hepler menu-type="favorite" menu-fav="dept" menu-data="{{ent.Id}}"></div>
+            <div class="childs"></div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="entDept.html">
+        <div>
+            <div class="ent_dept" ng-class="{ent_user : branch.isUser}" did="{{branch.Id}}" ng-bind="branch.Name"context-menu-hepler menu-type="dept" menu-data="{{branch.Id}}"></div>
+            <div class="childs"></div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="entUser.html">
+        <div>
+            <div class="ent_dept ent_user" did="{{branch.UserId}}" context-menu-hepler menu-type="emp" menu-data="{{branch.Id}}">
+                <img emp-avatar emp="branch" ng-src="{{branch.Avatar}}" />
+                <span ng-bind="branch.Name"></span>
+                <span ng-if="branch.ExtendPropsAfterName[0]" ng-bind="branch.ExtendPropsAfterName[0]"></span>
+            </div>
+            <div class="childs"></div>
+        </div>
+    </script>
+</body>
+</html>

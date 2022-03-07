@@ -1,0 +1,969 @@
+﻿<!DOCTYPE html>
+<html ng-app="im">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <title>SnailIM Login</title>
+    <script>
+        // var ROOT = 'res://js/';
+        var ROOT = '';
+        var PAGE = 'main';
+        var loginController = loginController || {};
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/global.css" />');
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/jquery.scrollbar.css" />');
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/main.css" />');
+    </script>
+</head>
+<body class="bg" ng-controller="appController">
+    <div id="context_menu" class="context_menu" context-menu ng-style="style" ng-show="showMenu"></div>
+    <div ng-controller="mainController" class="main_wrap" ng-style="{display:user ? 'block' : 'none'}" style="display:none;">
+        <div class="global_mask" ng-if="creating.status == 1">
+            <div class="roate_loading"></div>
+        </div>
+        <a draggable="false" class="resize" ng-if="windowStatus.status != 2"></a>
+        <!-- <div class="resize_win top" ng-mouseDown="setDragType(12)"></div>
+        <div class="resize_win left" ng-mouseDown="setDragType(10)"></div>
+        <div class="resize_win right" ng-mouseDown="setDragType(11)"></div>
+        <div class="resize_win bottom" ng-mouseDown="setDragType(15)"></div>
+        <div class="resize_win horn left_top" ng-mouseDown="setDragType(13)"></div>
+        <div class="resize_win horn right_top" ng-mouseDown="setDragType(14)"></div>
+        <div class="resize_win horn right_bottom" ng-mouseDown="setDragType(17)"></div>
+        <div class="resize_win horn left_bottom" ng-mouseDown="setDragType(16)"></div> -->
+        <div class="header no_select" ng-controller="headerController">
+            <div dev-tool></div>
+            <div class="header_right">
+                <div class="flex_start">
+                    <div class="avatar">
+                        <img draggable="false" src="img/defaultHeadImage.jpg" err-src emp="user" emp-avatar stop-bubble ng-if="user"/>
+                    </div>
+                    <a href="javascript:;" class="menu" ng-click="toggleMenu()" stop-bubble></a>
+                    <div class="menu_drop" ng-style="{display:showMenu ? 'block' : 'none'}" style="display:none;">
+                        <a draggable="false" href="javascript:;" ng-lang langkey="switchAccount" ng-click="switchAccount()">切换账号</a>
+                        <a draggable="false" href="javascript:;" ng-lang langkey="setting" ng-click="goSetting()">设置</a>
+                        <a draggable="false" href="javascript:;" ng-lang langkey="about" ng-click="goAbout()">关于</a>
+                        <!-- <p draggable="false" class="spliter"></p> -->
+                        <a draggable="false" href="javascript:;" ng-lang langkey="quit" ng-click="logOut()">退出</a>
+                    </div>
+                </div>
+                <div class="win_btns">
+                    <a href="javascript:;" draggable="false" class="win_btn win_min" ng-click="minWin()"><i></i></a>
+                    <a href="javascript:;" draggable="false" class="win_btn win_max" ng-click="maxWin()"><i></i></a>
+                    <a href="javascript:;" draggable="false" class="win_btn win_close" ng-click="closeWin()"><i></i></a>
+                    <!-- <a href="javascript:;" draggable="false" class="win_btn win_min" title="{{langPack.getKey('minwin')}}" ng-click="minWin()"><i></i></a> -->
+                    <!-- <a href="javascript:;" draggable="false" class="win_btn win_max" ng-click="maxWin()" title="{{windowStatus.status == 2 ? langPack.getKey('restorewin') : langPack.getKey('maxwin')}}"><i></i></a> -->
+                    <!-- <a href="javascript:;" draggable="false" class="win_btn win_close" title="{{langPack.getKey('close')}}" ng-click="closeWin()"><i></i></a> -->
+                </div>
+            </div>
+            <div class="header_left">
+                <img draggable="false" class="main_logo" src="img/logo2.png" />
+                <div class="search">
+                    <input type="text" id="search_ipt" ng-keydown="onKeyDown($event)" ng-paste="onPaste($event)"  ng-focus="search($event)" ng-model="keyword" ng-lang langkey="search" stop-bubble/>
+                    <a draggable="false" href="javascript:;" class="clear_ipt" ng-click="clearKeyword()" ng-if="keyword"></a>
+                    <a draggable="false" href="javascript:;" class="s_i" ng-if="!keyword"></a>
+                    <div class="search_res" ng-class="{no_res : keyword && !searchResult.hasResult && !$scope.searchResult.allData.length}" ng-show="searchResult.searching">
+                        <div class="search_cate search_staff" ng-if="searchResult.staffs.length">
+                            <p class="search_cate_title" ng-lang langkey="concat"></p>
+                            <div class="res_item staff_item" ng-repeat="staff in searchResult.staffs" title="{{staff.deptName}}" ng-class="{active:staff.active}" ng-click="chatWith(staff.Id)">
+                                <img emp-avatar emp="staff" class="search_avatar"/>
+                                <div class="item_info">
+                                    <p content="staff.Name" width="180"  keyword="keyword" filter-content-split></p>
+                                    <p content="staff.deptName" width="180"  keyword="keyword" filter-content-split class="grap"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="search_cate search_group"ng-if="searchResult.groups.length">
+                            <p class="search_cate_title" ng-lang langkey="group"></p>
+                            <div class="res_item group_item" ng-repeat="group in searchResult.groups" ng-class="{active:group.active}" ng-click="chatWith(group.Id)">
+                                <img emp-avatar class="search_avatar" emp="group" is-group="true" action="none"/>
+                                <div class="item_info">
+                                    <p style="line-height:36px;" content="group.ShowName" width="180"  keyword="keyword" filter-content-split></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="search_cate search_dept" ng-if="searchResult.depts.length">
+                            <p class="search_cate_title" ng-lang langkey="department"></p>
+                            <div class="res_item dept_item" ng-repeat="dept in searchResult.depts" title="{{dept.LevelInfo}}" ng-class="{active:dept.active}" ng-click="goDept(dept.Id)">
+                                <p content="dept.Name" width="225"  keyword="keyword" filter-content-split></p>
+                                <p content="dept.LevelInfo" width="225"  keyword="keyword" filter-content-split class="grap"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <a draggable="false" href="javascript:;" class="start_chat" ng-click="startChat()"></a>
+            </div>
+            <div class="navs">
+                <a draggable="false" href="javascript:;" class="icon chat " ng-click="switchView('chat')" ng-class="{select:view.currentView == 'chat'}"><i></i></a>
+                <a draggable="false" href="javascript:;" class="icon concat" ng-click="switchView('concat')" ng-class="{select:view.currentView == 'concat'}"><i></i></a>
+            </div>
+        </div>
+        <div class="left_part" ng-style="{backgroundColor:view.currentView =='chat' ? '#ebecf0' : '#f7f8fb'}">
+            <div class="chat_list" ng-controller="chatListController" ng-style="{display:view.currentView == 'chat' ? 'block' : 'none'}">
+                <div ng-lang langkey="offlineTip" class="offline_tips" ng-if="!userStatus.online && (userStatus.status == 1 || userStatus.status == 2)"></div>
+                <div style="position:absolute;top:0;bottom:0;width:100%;" ng-style="{top:!userStatus.online && (userStatus.status == 1 || userStatus.status == 2)?'30px':'0px'}">
+                    <div class="wrap scrollbar-dynamic" jquery-scrollbar id="chat_list">                       
+                        <div cus-repeat="chat in chatList track by chat.Id" list="chatList" height="64" buffer-height="100" on-scroll-end="onScrollEnd" when-show-dom="whenShow">
+                            <div concat-directive></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="concat_list" ng-controller="concatController" ng-style="{display:view.currentView == 'concat' ? 'block' : 'none'}">
+                <div class="concat_wrap">
+                    <div class="concat_block" context-menu-hepler menu-type="reloadEnt">
+                        <p class="concat_title" ng-lang langkey="friends" ng-click="getFriends()" ng-class="{show : show.friend}">我的好友</p>
+                        <div class="concats" ng-show="show.friend">
+                            <div class="concat_item" ng-repeat="friend in friends"ng-class="{select:select == friend.Id}" context-menu-hepler menu-type="friend" menu-data="{{friend.Id}}" ng-click="switchSelect(4,friend.Id)" ng-dblclick="chatWith(friend.Id)">
+                                <img emp-avatar emp="friend" action="none"/>
+                                <span ng-bind="friend.Name"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="concat_block" context-menu-hepler menu-type="reloadEnt">
+                        <p class="concat_title no_tran" ng-lang langkey="serviceAccount" ng-click="switchSelect(3);">服务号</p>
+                    </div>
+                    <div class="concat_block" context-menu-hepler menu-type="reloadEnt" menu-data="{{ent.Id}}">
+                        <p class="concat_title" ng-lang langkey="fcontacts" ng-click="getFavorite(0)" ng-class="{show : show.user}">常用联系人</p>
+                        <div class="concats" ng-show="show.user">
+                            <div class="concat_item" ng-repeat="user in users" ng-class="{select:select == user.Id}" context-menu-hepler menu-type="favorite" menu-fav="user" menu-data="{{user.Id}}" ng-click="switchSelect(0,user.Id)" ng-dblclick="chatWith(user.Id)">
+                                <img emp-avatar emp="user" action="none">
+                                <span ng-bind="user.Name"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="concat_block" context-menu-hepler menu-type="reloadEnt">
+                        <p class="concat_title" ng-lang langkey="fdepts" ng-click="getFavorite(1)" ng-class="{show : show.dept}">常用部门</p>
+                        <div class="concats" id="fav_depts" ng-show="show.dept">
+                        </div>
+                    </div>
+                    <div class="concat_block" context-menu-hepler menu-type="reloadEnt">
+                        <p class="concat_title" ng-lang langkey="fgroups" ng-click="getFavorite(2)" ng-class="{show : show.group}">常用群聊</p>
+                        <div class="concats" ng-show="show.group">
+                            <div class="concat_item group_item" ng-repeat="group in groups" ng-class="{select:select == group.Id}" context-menu-hepler menu-type="favorite" menu-fav="group" menu-data="{{group.Id}}" ng-click="switchSelect('5',group.Id)" ng-dblclick="chatWith(group.Id)">
+                                <img emp-avatar emp="group" action="none" is-group="true" ng-src="{{group.Avatar}}"/>
+                                <span ng-bind="group.Name || group.ShowName"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div ng-if="loadingDept != 2" style="padding-left:20px;">
+                        <p ng-if="loadingDept == 1" ng-bind="deptLoadingString"></p>
+                        <p ng-if="loadingDept == 3"><span ng-lang langkey="loadEntError"></span>,<a href="javascript:;" class="" ng-click="reloadEnt()" ng-lang langkey="clickToRetry"></a></p>
+                    </div>
+                    <div class="ents">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="right_part" ng-class="{no_content : !chatData.currentChat && view.currentView == 'chat'}">
+            <div class="resize_e"></div>
+            <div class="chat_wrap" ng-controller="messageController" ng-style="{display:(chatData.currentChat && view.currentView == 'chat') ? 'block' : 'none'}">
+                <div class="chat_head" copy-msg>
+                    <div id="group_info_warp" class="group_info_warp" ng-show="showing"></div>
+                    <div class="inner">
+                        <p class="chat_title" ng-click="showChatInfo($event)">
+                            <span class="chat_name" ng-bind="chat.Name||chat.ShowName"></span>
+                            <span class="chat_name" ng-if="chat.isGroup">({{chat.MemberCount || 0}})</span>
+                            <span class="block_chat_icon" ng-if="chat.Undisturbed" style="margin-left: 6px;margin-top: 2px;"></span>
+                            <span class="chat_drop" ng-class="{showing:showing}" ng-show="currentChatType != 'b'"></span>
+                        </p>
+                    </div>
+                </div>
+                <div class="msg_list_wrap" ng-style="{bottom:currentChatType == 'b' ? '10px' : getBottom()}">
+                    <p ng-style="{display : loading ? 'block' : 'none'}" class="loading_msg_tip" style="display:none;"><img src="img/ico_loading.gif" /><span ng-bind-html="langPack.getKey('loadingMsg')"></span></p>
+                    <p ng-style="{display : unreadCount > 10 ? 'block' : 'none'}" class="prev_unread_msg" style="display:none;" ng-click="loadMoreUnreadMsg()"><span ng-bind-html="unreadCount + langPack.getKey('unreadMsg')"></span></p>
+                    <p ng-style="{display : startRecordNewMsgId && newMsgId && unreadCount == 0 ? 'block' : 'none'}" class="next_unread_msg" style="display:none;" ng-click="scrollToNewMsg()"><span ng-bind-html="newMsgCount + langPack.getKey('newMsg')"></span></p>
+                    <div id="cacl_msg_height" class="msg_list" style="z-index:-1;">
+                        <!-- <div ng-repeat="_msg in currentMsgList track by $index" >
+                            <div message-directive></div>
+                        </div> -->
+                    </div>
+                </div>
+                <div class="msg_editor" ng-controller="editorController" ng-show="currentChatType != 'b'">
+                    <div class="record" ng-if="record.status != 0" ng-controller="recordController" ng-style="{'border-top-width' : record.status == 2 ? '0' : '1px'}">
+                        <div class="record_progess" ng-if="record.status == 1">
+                            <div class="recorded_progess" ng-style="{width:record.recordTime / 60 * 100 + '%'}"></div>
+                        </div>
+                        <div class="record_info">
+                            <span class="record_time" ng-bind="record.recordTime + 's'" ng-if="record.recordTime > 0 && record.status == 1"></span>
+                            <i class="record_pointer" ng-class="{odd : record.recordTime % 2 == 0}"></i>
+                            <span class="record_status" ng-lang langkey="recording" ng-if="record.status == 1"></span>
+                            <span class="record_status" ng-lang langkey="recordFinish" ng-if="record.status == 2"></span>
+                            <a draggable="false" href="javascript:;" class="record_btn" ng-lang langkey="send" ng-click="sendRecord()"></a>
+                            <a draggable="false" href="javascript:;" class="record_btn" ng-lang langkey="cancel" ng-click="cancel()"></a>
+                        </div>
+                    </div>
+                    <div class="resize_s"></div>
+                    <div class="msg_bar" id="tool_bar">
+                        <a draggable="false" href="javascript:;" class="bar_item history" ng-click="showHistory($event)" stop-bubble title="{{langPack.getKey('btn.history')}}" ng-if="showHistoryBtn"><i></i></a>
+                        <a draggable="false" href="javascript:;" class="bar_item face" ng-click="showFace($event)" stop-bubble title="{{langPack.getKey('btn.face')}}"><i></i></a>
+                        <a draggable="false" href="javascript:;" class="bar_item file" ng-click="chooseFile()" title="{{langPack.getKey('btn.file')}}"><i class="file_i"></i></a>
+                        <a draggable="false" href="javascript:;" class="bar_item drop" ng-click="showLargePC=!showLargePC" stop-bubble><i class="trans"></i><i class="larger_file_i ng-hide" ng-show="showLargePC" ng-lang langkey="largeFilePC" stop-bubble ng-click="openLargeFileTransPage()"></i></a>
+                        <a draggable="false" href="javascript:;" class="bar_item image" ng-click="chooseImage($event)" stop-bubble title="{{langPack.getKey('btn.img')}}"><i></i></a>
+                        <a draggable="false" href="javascript:;" class="bar_item voice" ng-click="startRecord($event)" stop-bubble ng-if="!global.IsOfflineFileForbidden" title="{{langPack.getKey('btn.voice')}}"><i></i></a>
+                        <a draggable="false" href="javascript:;" class="bar_item screen_shoot" ng-click="capture($event)" stop-bubble title="{{langPack.getKey('btn.capture')}}"><i></i></a>
+                        <a draggable="false" href="javascript:;" class="bar_item_video"  ng-if="!chat.isGroup && chat.Id != 's_f84d705ae09f475d9343623e350fef42'" ng-click="goVideoCall()" stop-bubble title="1v1视频通话"><i></i></a>
+                        <a draggable="false" href="javascript:;" class="bar_item_video"  ng-if="chat.isGroup" ng-click="videoselected($event)" stop-bubble title="多人视频通话"><i></i></a>
+                        <!-- 在群 或者 会议小助手 聊天界面显示 -->
+                        <a draggable="false" href="javascript:;" class="bar_item_video bar_item_videoMakeAnAppointment"  ng-if="chat.isGroup||chat.Id == 's_f84d705ae09f475d9343623e350fef42'" ng-click="videoMakeAnAppointment($event)" stop-bubble title="预约视频通话"><i></i></a>
+                    </div> 
+                    <div class="editor_wrap">
+                        <div class="wrap" id="edit_area_warper">
+                            <div context-menu-hepler menu-type="editor"  class="editor" id="msg_edit_area" ng-click="editAreaClick($event)"  ng-keyup="keyUp($event)" ng-input="editAreaInput()" ng-keypress="keyPressHandler($event)" ng-keydown="keyDownSend($event)" ng-model="msg.msgContent" contenteditable="true" contenteditable-directive></div>
+                            <!-- <div class="editor" id="msg_edit_area" ng-model="msg.msgContent" contenteditable="true" contenteditable-directive></div> -->
+                            <span class="caret_pos_helper" id="caretPosHelper"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div ng-controller="concatDetailController" class="content_detail" ng-class="{no_content : view.currentView == 'concat' && current.type == -1}" style="display:none;" ng-style="{display:view.currentView == 'concat' ? 'block' : 'none',zIndex:view.currentView == 'concat' ? '100' : '99'}">
+                <div class="detail_info" ng-if="current.type == 0 || current.type == 4">
+                    <div class="user_wrap">
+                        <div class="user_top">
+                            <img emp-avatar emp="user" class="user_avatar" ng-if="user"/>
+                            <p class="user_name" ng-class="{man : user.Gender != 1 , woman:user.Gender == 1}"><span ng-bind="user.Name"></span></p>
+                            <p class="user_signature" ng-bind="user.Signature" ng-if="user.Signature"></p>
+                            <p class="user_signature" ng-lang langkey="user.noSignature" style="color:#000;" ng-if="!user.Signature"></p>
+                        </div>
+                        <div class="friend_info" ng-if="current.type == 4">
+                            <div class="ent_props">
+                                <div class="ent_prop">
+                                    <span ng-lang langkey="user.userName"></span>
+                                    <p ng-bind="user.Name"></p>
+                                </div>
+                                <div class="ent_prop">
+                                    <span ng-lang langkey="user.mobile"></span>
+                                    <p ng-bind="user.Mobile"></p>
+                                </div>
+                                <div class="ent_prop">
+                                    <span ng-lang langkey="user.email"></span>
+                                    <p ng-bind="user.Email"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <a draggable="false" href="javascript:;" class="switch_ent prev_ent" ng-class="{disable:idx == 0}" ng-click="prev(-1)" ng-if="user.Staffs.length > 1" stop-bubble></a>
+                        <a draggable="false" href="javascript:;" class="switch_ent next_ent" ng-class="{disable:idx == user.Staffs.length - 1}" ng-click="next(1)" ng-if="user.Staffs.length > 1" stop-bubble></a>
+                        <div class="user_bottom" id="user_ents_wrap" ng-style="{top:current.type == 4 ? '300px' : '180px'}">
+                            <div ng-style="{width:100 * user.Staffs.length + '%'}" style="height:100%;">
+                                <div class="user_ents" ng-repeat="ent in user.Staffs track by $index">
+                                    <p class="ent_name" ng-bind="ent.Company.Name"></p>
+                                    <div class="ent_props">
+                                        <div class="ent_prop">
+                                            <span ng-lang langkey="ent.userName"></span>
+                                            <p ng-bind="user.Name"></p>
+                                        </div>
+                                        <div class="ent_prop">
+                                            <span ng-lang langkey="ent.job"></span>
+                                            <p ng-bind="ent.JobTitle"></p>
+                                        </div>
+                                        <div class="ent_prop">
+                                            <span ng-lang langkey="ent.email"></span>
+                                            <p ng-bind="ent.Email"></p>
+                                        </div>
+                                        <div class="ent_prop">
+                                            <span ng-lang langkey="ent.empNo"></span>
+                                            <p ng-bind="ent.No"></p>
+                                        </div>
+                                        <div class="ent_prop" ng-repeat="dept in ent.Departments">
+                                            <span ng-lang langkey="ent.depts"></span>
+                                            <p content="dept.LevelInfo" width="225" ecllipse-directive></p>
+                                        </div>
+                                        <div class="ent_prop" ng-if="ent.Leader">
+                                            <span ng-lang langkey="ent.leader"></span>
+                                            <p ng-bind="ent.Leader.Name"></p>
+                                        </div>
+                                        <div class="ent_prop" ng-repeat="prop in ent.ExtendProps">
+                                            <span ng-bind="prop.Key"></span>
+                                            <p ng-bind="prop.Value"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="staff_switch" ng-if="user.Staffs.length > 1">
+                            <a draggable="false" href="javascript:;" class="icon" ng-click="go($index)" ng-repeat="staff in user.Staffs track by $index" ng-class="{blue:idx == $index}"><i></i></a>
+                        </div>
+                        <a draggable="false" href="javascript:" class="send_msg_btn" ng-lang langkey="sendMessage" ng-click="chatWith(user.Id)"></a>
+                    </div>
+                </div>
+                <div class="detail_info" ng-if="current.type == 1">
+                    <div class="ent_top">
+                        <img ng-src="{{ent.logo}}" />
+                        <p ng-bind="ent.Name"></p>
+                    </div>
+                    <div class="ent_bottom">
+                        <div class="section_wrap">
+                            <div class="ent_emp_count">
+                                <i></i>
+                                <span ng-lang langkey="entEmpCount" class="gray"></span>
+                                <span ng-bind-html="ent.AllStaffCount || '0'"></span>
+                            </div>
+                            <div class="ent_charger">
+                                <i></i>
+                                <span ng-lang langkey="entCharger" class="gray"></span>
+                                <span ng-bind="ent.Leader.Name" ng-if="ent.Leader"></span>
+                                <span ng-if="!ent.Leader" ng-lang langkey="noEmp"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="detail_info" ng-if="current.type == 2">
+                    <div class="dept_wrap">
+                        <p class="dept_title" ng-bind="dept.LevelInfo | deptNameFilter"></p>
+                        <p class="dept_name" ng-bind="dept.Name"></p>
+                        <div class="dept_section_wrap">
+                            <div class="dept_section dept_charger">
+                                <i></i>
+                                <span ng-lang langkey="deptLeader" class="gray"></span>
+                                <span ng-bind="dept.Leader.Name" ng-if="dept.Leader"></span>
+                                <span ng-if="!dept.Leader" ng-lang langkey="noEmp"></span>
+                            </div>
+                            <div class="dept_section dept_director" ng-if="dept.Director">
+                                <i></i>
+                                <span ng-lang langkey="deptDirector" class="gray"></span>
+                                <span ng-bind="dept.Director.Name"></span>
+                                <span ng-if="!dept.Director" ng-lang langkey="noEmp"></span>
+                            </div>
+                            <div class="dept_section dept_emp_count">
+                                <i></i>
+                                <span ng-lang langkey="deptEmpCount" class="gray"></span>
+                                <span ng-bind-html="dept.AllStaffCount || '0'"></span>
+                            </div>
+                        </div>
+                        <a draggable="false" href="javascript:;" class="send_msg_btn" ng-lang langkey="startChat" ng-click="chatWithDept(dept.Id)"></a>
+                    </div>
+                </div>
+                <div class="detail_info" ng-if="current.type == 3" style="height:100%;">
+                    <div class="service_ents_wrap">
+                        <div class="service_ents" ng-repeat="ent in servicesEnts">
+                            <p ng-bind="ent.Company.Name" class="service_com_name"></p>
+                            <div class="service_wrap">
+                                <div class="service_item" ng-repeat="service in ent.Staffs" ng-dblclick="chatWith(service.Id)">
+                                    <img emp-avatar emp="service"/>
+                                    <p ng-bind="service.Name" class="service_name"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div ng-controller="broadDetailController" class="broad_detail" style="display:none" ng-style="{display:view.currentView == 'chat' && view.broadMsg ? 'block' : 'none'}">
+                <div class="broad_head">
+                    <a draggable="false" href="javascript:;" ng-lang langkey="goback" ng-click="goBack()"></a>
+                    <p ng-lang langkey="broadDetailTitle"></p>
+                </div>
+                <p class="broad_title" ng-bind-html="broad.s_TITLE"></p>
+                <pre class="broad_content" ng-bind-html="broad.s_CONTENTS | broadDetailFilter"></pre>
+            </div>
+       </div>
+    </div>
+    <script>
+        document.write('<script src="'+ROOT+'js/main.js">'+'<\/script>');
+    </script>
+
+    <script type="text/ng-template" id="chatConcat.html">
+        <div class="chat_block" ng-click="chatWith(chat.Id)" ng-class="{active:chat.id == chatData.currentChat,is_top : chat.Sticky}" context-menu-hepler menu-type="chat" menu-data="{{chat.id}}">
+            <div class="avatar" ng-if="chat.id != 'service_chat_converge'">
+                <!-- <img ng-src="{{chat.face}}"/> -->
+                <i class="un_read_num" ng-if="chat.UnreadMsgCount && !chat.Undisturbed">{{chat.UnreadMsgCount|unreadCountFilter}}</i>
+                <!-- <img ng-if="!chat.isGroup" emp-avatar avatar="chat.face" emp="chat" ischat="true" size="48"/>
+                <img ng-if="chat.isGroup" group-avatar gid="chat.id" size="48"/> -->
+                <img emp="chat" emp-avatar err-src/>
+                <span class="block_chat" ng-if="chat.Undisturbed && chat.UnreadMsgCount"></span>
+            </div>
+            <div class="chat_info">
+                <div class="info_top">
+                    <!-- <p ng-show="!hasName(chat)" class="loading_group" ng-class="{hide_loading:hasName(chat)}" ng-lang langkey="loading">加载中...</p> -->
+                    <p class="time" ng-if="chat.MsgTimestamp">{{chat.MsgTimestamp|timeFormat}}</p>
+                    <p class="emp_name" ng-bind="chat.Name || chat.ShowName"></p>
+                </div>
+                <div class="msg_overview">
+                    <p class="msg_p">
+                        <span class="block_chat_icon" ng-if="chat.Undisturbed"></span>
+                        <span ng-if="chat.AtMeTimestamp" class="at_tips" ng-lang langkey="someoneAt">[有人@我]</span>
+                        <span ng-if="chat.MsgStatus == 0 && chat.MsgContent" class="at_tips" ng-lang langkey="sendFail"></span>
+                        <span ng-if="chat.Id != chatData.currentChat && chat.msgTemp != '' && chat.msgTemp != undefined" class="msg_temp" ng-lang langkey="draft">[草稿]</span>
+                        <span ng-if="chat.Id != chatData.currentChat && chat.msgTemp != '' && chat.msgTemp != undefined" ng-bind-html="chat.msgTemp | htmlOverviewMsgTemp"></span>
+                        <span dtat-msg='{{chat}}' ng-if="(!chat.msgTemp || chat.msgTemp && chat.Id == chatData.currentChat) && chat.MsgContent != ''" ng-bind-html="(chat.isGroup ? (chat.MsgSenderName && chat.MsgSenderId != user.Id ? (chat.MsgSenderName + ':') : '') : '') + (chat | htmlOverview)"></span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </script>
+        
+    <script type="text/ng-template" id="message.html">
+        <div class="msg" id="msg_{{_msg.messageid}}" ng-class="{me:_msg.senderId == user.Id,is_group:_msg.inGroup}" time="{{_msg.timeStamp}}">
+            <p class="msg_time {{_msg.msgObj.voiceRoomKey+'_time'}}"  ng-show="_msg.showTime"><span>{{_msg.timeStamp|msgDetailTimeFormat}}</span></p>
+            <p class="msg_time" ng-if="_msg.type == webConfig.MSG_SYSTEM_TYPE">{{_msg.content}}</p>
+            <!-- 群操作消息 -->
+            <div ng-if="_msg.type == webConfig.MSG_SERVICE_TYPE && _msg.msgObj.n_TYPE == 100">
+                <p class="msg_time" ng-bind-html="_msg|groupOperateMsgFilter"></p>
+            </div>
+            <!-- 撤回消息 -->
+            <div ng-if="_msg.type == webConfig.MSG_SERVICE_TYPE && _msg.msgObj.n_TYPE == 7">
+                <p class="redraw_msg"><span>{{(_msg.senderId == user.Id ? langPack.getKey('you') : _msg.msgObj.senderName)+ ' ' + langPack.getKey('withDrawMsg')}}</span></p>
+            </div>
+            <!-- 语音会议 -->
+            <div ng-if="_msg.type == webConfig.MSG_SERVICE_TYPE && _msg.msgObj.n_TYPE == 3 && _msg.msgObj.voiceMeetingType == 'invite'">
+                <p class="msg_time" ng-if="_msg.senderId != user.Id">{{_msg.sender.Name + ' ' + langPack.getKey('invitedIntoMetting')}}</p>
+                <p class="msg_time" ng-if="_msg.senderId == user.Id">{{langPack.getKey('you') + ' ' + langPack.getKey('invitedIntoMettingInSender')}}</p>
+            </div>
+            <!-- 视频会议 -->
+            <div class='{{_msg.msgObj.voiceRoomKey+"_vt"}}' data-voiceMeetingType='{{_msg.msgObj.voiceMeetingType}}' ng-if="_msg.type == webConfig.MSG_SERVICE_TYPE && _msg.msgObj.n_TYPE == 10 && _msg.msgObj.voiceMeetingType =='invite'" >
+                <!-- {{_msg.msgObj.message}} -->
+                <!-- <p class="msg_time" ng-if="_msg.senderId != user.Id">{{_msg.sender.Name + ' ' + langPack.getKey('invitedVideoconferencing')}}</p> -->
+                <!-- <p class="msg_time" ng-if="_msg.senderId == user.Id">{{langPack.getKey('you') + ' ' + langPack.getKey('invitedVideoconferencingInSender')}}</p> -->
+                <p class="msg_time" ng-if="_msg.senderId != user.Id">{{ _msg.sender.Name + ' ' + langPack.getKey('invitedVideoconferencing')}}</p>
+                <p class="msg_time" ng-if="_msg.senderId == user.Id">{{langPack.getKey('you') + ' ' + langPack.getKey('invitedVideoconferencingInSender')}} </p>
+            </div>
+            <div class='{{_msg.msgObj.voiceRoomKey+"_vt"}}'  data-voiceMeetingType='{{_msg.msgObj.voiceMeetingType}}' ng-if="_msg.type == webConfig.MSG_SERVICE_TYPE && _msg.msgObj.n_TYPE == 10 && _msg.msgObj.voiceMeetingType =='destroy'" >
+                <!-- {{_msg.msgObj.message}} -->
+                <!-- <p class="msg_time" ng-if="_msg.senderId != user.Id">{{_msg.sender.Name + ' ' + langPack.getKey('invitedVideoconferencing')}}</p> -->
+                <!-- <p class="msg_time" ng-if="_msg.senderId == user.Id">{{langPack.getKey('you') + ' ' + langPack.getKey('invitedVideoconferencingInSender')}}</p> -->
+                <p class="msg_time" ng-if="_msg.senderId != user.Id">{{_msg.sender.Name +' '+(_msg.msgObj.message?_msg.msgObj.message:'已取消了视频会议')}}</p>
+                <p class="msg_time" ng-if="_msg.senderId == user.Id">{{langPack.getKey('you') + (_msg.msgObj.message?_msg.msgObj.message:'已取消了视频会议')}}</p>
+            </div> 
+            <div class='{{_msg.msgObj.voiceRoomKey+"_vt"}}'  data-voiceMeetingType='{{_msg.msgObj.voiceMeetingType}}' ng-if="_msg.type == webConfig.MSG_SERVICE_TYPE && _msg.msgObj.n_TYPE == 10 && _msg.msgObj.voiceMeetingType =='refuse'" >
+                <!-- {{_msg.msgObj.message}} -->
+                <!-- <p class="msg_time" ng-if="_msg.senderId != user.Id">{{_msg.sender.Name + ' ' + langPack.getKey('invitedVideoconferencing')}}</p> -->
+                <!-- <p class="msg_time" ng-if="_msg.senderId == user.Id">{{langPack.getKey('you') + ' ' + langPack.getKey('invitedVideoconferencingInSender')}}</p> -->
+                <!-- <p class="msg_time" ng-if="_msg.senderId != user.Id">{{_msg.sender.Name +' '+_msg.msgObj.message}}</p>
+                <p class="msg_time" ng-if="_msg.senderId == user.Id">您已拒绝视频会议</p> -->
+                <!-- <p class="msg_time">{{_msg.msgObj.message?_msg.msgObj.message:'已拒绝'}}</p> -->
+                <p class="msg_time" ng-if="_msg.senderId != user.Id">{{_msg.sender.Name + ' ' + (_msg.msgObj.message?_msg.msgObj.message:'拒绝了您的邀请：拒绝视频邀请')}}</p>
+                <p class="msg_time" ng-if="_msg.senderId == user.Id">{{_msg.msgObj.message?_msg.msgObj.message:'已拒绝对方视频邀请'}}</p>
+            </div> 
+            <div  class='{{_msg.msgObj.voiceRoomKey+"_vt"}}'  data-voiceMeetingType='{{_msg.msgObj.voiceMeetingType}}' ng-if="_msg.type == webConfig.MSG_SERVICE_TYPE && _msg.msgObj.n_TYPE == 10 && _msg.msgObj.voiceMeetingType =='busy'" >
+                <!-- {{_msg.msgObj.message}} -->
+                <p class="msg_time" ng-if="_msg.senderId != user.Id">{{_msg.sender.Name + ' ' + (_msg.msgObj.message?_msg.msgObj.message:'现在不能加入您的会议：他正在另一个会议中') }}</p>
+                <p class="msg_time" ng-if="_msg.senderId == user.Id">{{langPack.getKey('you') + ' ' +'正在会议中:已拒绝视频邀请'}}</p>
+                <!-- <p class="msg_time" >{{_msg.msgObj.message}}</p> -->
+            </div> 
+            <!-- 文本消息 -->
+            <div ng-if="_msg.type == webConfig.MSG_TEXT_TYPE && !_msg.sercontenttype">
+                <div class="avatar">
+                    <img emp-avatar avatar="_msg.sender.SAvatar" emp="_msg.sender"/>
+                </div>
+                <div class="msg_txt_warper">
+                    <p ng-if="_msg.inGroup && _msg.senderId != user.Id" class="msg_sender_name" ng-bind="_msg.sender.SShowName || _msg.sender.Name"></p>
+                    <div class="warper" context-menu-hepler menu-forwardable="1" menu-msg="_msg" menu-data="{{_msg.messageid}}" menu-type="{{webConfig.MSG_NAME}}">
+                        <span class="msg_split"></span>
+                        <pre class="msg_txt" pid="msg_{{_msg.messageid}}"><span class="hide_name">{{_msg.sender.Name}}：</span><span class="msg_content" ng-bind-html="_msg|msgFilter"></span></pre>
+                        <a draggable="false" href="javascript:;" class="resend" ng-show="_msg.status == webConfig.MSG_SENDFAIL" ng-click="resendMsg(_msg)"></a>
+                        <a draggable="false" href="javascript:;" class="sending" ng-show="_msg.status == webConfig.MSG_SENDING"><img src="img/ico_loading.gif" /></a>
+                    </div>
+                </div>
+                <div class="clear"></div>
+            </div>
+            <!-- 服务号消息 -->
+            <div ng-if="_msg.type == webConfig.MSG_SERVICE_TYPE && _msg.msgObj.n_TYPE == 2" source="{{_msg}}">
+                <div class="msg_txt_warper">
+                    <div class="msg_servive_wrap">
+                        <p class="_title"><span ng-bind-html="_msg.msgObj.s_TITLE"></span><span class="_time" ng-bind-html="_msg.timeStamp | msgDetailTimeFormat"></span></p>
+                        <img ng-src="{{_msg.msgObj.s_COVERIMAGEURL}}" class="_img load_img"/>
+                        <p class="_s_title">{{_msg.msgObj.s_INTRODUCE | serviceContentFilter}}</p>
+                        <div class="broadcast_footer">
+                            <a draggable="false" href="{{_msg.msgObj.s_CONTENTTYPE == 'image' ? webConfig.SERVICE_MSG_PIFX + _msg.msgObj.s_CONTENTS : _msg.msgObj.s_URL}}" class="broadcast_detail_btn go_service_detail" type="{{_msg.msgObj.s_CONTENTTYPE}}" link="{{_msg.msgObj.s_CONTENTS || _msg.msgObj.s_URL}}"><span ng-lang langkey="seeDetail"></span><span class="right_arrow"></span></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="clear"></div>
+            </div>
+            <!-- <div>视频会议list：{{_msg}}</div> -->
+            <!--新增 预约-视频会议 -->
+            <div ng-if='_msg.type == webConfig.MSG_SERVICE_TYPE &&_msg.msgType == 10 && _msg.msgObj.n_TYPE == 12 '>
+                <div class="avatar">
+                    <img emp-avatar avatar="_msg.sender.SAvatar" emp="_msg.sender"/>
+                </div>
+                <div class='msg_txt_warper'>
+                    <p ng-if="_msg.inGroup && _msg.sender.Id != user.Id" class="msg_sender_name" ng-bind="_msg.sender.SShowName || _msg.sender.Name"></p>
+                    <div class="warper" context-menu-hepler menu-forwardable="1" menu-msg="_msg" menu-data="{{_msg.messageid}}" menu-type="{{webConfig.MSG_NAME}}">
+                        <span class="msg_split"></span>
+                        <pre class="msg_txt msg_reserveVideo_box {{_msg.msgObj.meetingRoomKey+'_btn'}}"  pid="msg_{{_msg.messageid}}" rooid='{{_msg.msgobj.meetingRoomKey}}' source="{{_msg}}">
+                            <ul class='msg_reserveVideo_list_box gg-flex-4 gg-flex-2'>
+                            <img class='msg_reserveVideo_list_status' ng-src="{{_msg.msgObj.optionType == 'invite' ||  _msg.msgObj.optionType == 'remind' || _msg.msgObj.optionType == 'modify' ?'./images/video/preordain_await.png':_msg.msgObj.optionType == 'cancel'?'./images/video/preordain_cancel.png':''}}" alt="">
+
+                                <li class='msg_reserveVideo_list_header'>{{_msg.msgObj.optionType == 'invite'?'会议邀请':_msg.msgObj.optionType == 'cancel'?'会议取消':_msg.msgObj.optionType == 'remind'?'会议即将开始':_msg.msgObj.optionType == 'modify'?'会议变更':'测试'}}</li>
+                                <li class=' msg_reserveVideo_list_main ' >
+                                    <div class='gg-flex-4 gg-flex-2' style=' padding: 16px 9px 8px 9px;'>
+                                        <div class='msg_reserveVideo_list_main_item gg-flex-4'>
+                                            <div class='msg_reserveVideo_list_main_item_title'>创建人：</div>
+                                            <div class='msg_reserveVideo_list_main_item_name'>{{_msg.msgObj.creator.name}}</div>
+                                        </div>
+                                        <div class='msg_reserveVideo_list_main_item gg-flex-4'>
+                                            <div class='msg_reserveVideo_list_main_item_title'>主题：</div>
+                                            <div class='msg_reserveVideo_list_main_item_name'>{{_msg.msgObj.subject}}</div>
+                                        </div>
+                                        <div class='msg_reserveVideo_list_main_item gg-flex-4'>
+                                            <div class='msg_reserveVideo_list_main_item_title'>时间：</div>
+                                            <div class='msg_reserveVideo_list_main_item_name'>{{_msg.msgObj.beginTime}}</div>
+                                        </div>
+                                        <div class='msg_reserveVideo_list_main_item gg-flex-4'>
+                                            <div class='msg_reserveVideo_list_main_item_title'>参会成员：</div>
+                                            <div class='gg-flex-4' style='flex: 1; flex-wrap: wrap;'>
+                                                <div class='msg_reserveVideo_list_main_item_name'   data-index="{{$index}}" ng-repeat='item in _msg.msgObj.members track by $index'>
+                                                    {{$index>0?',':''}}{{item.name}}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div> 
+                                </li>
+                                <li class='msg_reserveVideo_list_footer gg-flex-1' ng-class="{'disabled':_msg.msgObj.optionType == 'cancel'}">
+                                    <div class='msg_reserveVideo_list_footer_item msg_reserveVideo_list_footer_item_join gg-flex-1' source='{{_msg}}'>
+                                        <img class='msg_reserveVideo_list_footer_item_icon' src="./images/video/preordain_Join_btn.png"   alt="" ng-click='onJoinMeeting($event,_msg)'>
+                                        <div class='msg_reserveVideo_list_footer_item_title '>加入会议</div>
+                                    </div>
+                                    <!-- 创建人等于自己 才可以显示操作 -->
+                                    <div class='msg_reserveVideo_list_footer_item msg_reserveVideo_list_footer_item_edit gg-flex-1'  source='{{_msg}}' ng-show='_msg.msgObj.creator.userId == user.Id '>
+                                        <img class='msg_reserveVideo_list_footer_item_icon' src="./images/video/preordain_edit_btn.png" alt="">
+                                        <div class='msg_reserveVideo_list_footer_item_title '>编辑会议</div> 
+                                    </div>
+                                    <div class='msg_reserveVideo_list_footer_item msg_reserveVideo_list_footer_item_cancel gg-flex-1'   source='{{_msg}}' ng-show='_msg.msgObj.creator.userId == user.Id '>
+                                        <img class='msg_reserveVideo_list_footer_item_icon' src="./images/video/preordain_cancel_btn.png" alt="">
+                                        <div class='msg_reserveVideo_list_footer_item_title '>取消会议</div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </pre>
+                    </div>
+
+                </div>
+
+            </div>
+             <!-- 视频会议消息-->
+           <div ng-if="msgChatRoomIdIs(_msg) "  class='{{_msg.msgObj.voiceRoomKey+"_box"}}'>
+                <div class="avatar">
+                    <img emp-avatar avatar="_msg.sender.SAvatar" emp="_msg.sender"/>
+                </div>
+                <div class='msg_txt_warper'>
+                    <p ng-if="_msg.inGroup && _msg.senderId != user.Id" class="msg_sender_name" ng-bind="_msg.sender.SShowName || _msg.sender.Name"></p>
+                    <div class="warper" context-menu-hepler menu-forwardable="1" menu-msg="_msg" menu-data="{{_msg.messageid}}" menu-type="{{webConfig.MSG_NAME}}">
+                        <span class="msg_split"></span>
+                        <pre class="msg_txt msg_video_box"  pid="msg_{{_msg.messageid}}" rooid='{{_msg.msgobj.voiceRoomKey}}'>
+                            <ul class='msg_video_list_box'>
+                                <li class='msg_video_list_title'>视频会议</li>
+                                <li class='msg_video_list_go {{_msg.msgObj.voiceRoomKey+"_btn"}}'  data-voiceMeetingType='{{_msg.msgObj.voiceMeetingType}}'>
+                                    <span class='msg_video_refuse' source="{{_msg}}" ng-class=" OnIsGroup(_msg) || _msg.senderId == user.Id ? 'Prohibit_btn' : ' '"  >
+                                        <div class='msg_video_icon_bg msg_video_refuse_icon'></div> 
+                                        <label >拒绝</label>
+                                    </span>
+                                    <span class='msg_video_agree'  source="{{_msg}}" ng-class=" OnIsGroup(_msg)  ? 'Prohibit_btn' : ' '"  >
+                                        <a draggable='false' href='javascript:;' target="_blank">
+                                            <div class='msg_video_icon_bg msg_video_agree_icon'></div> 
+                                            <label >接听</label>
+                                        </a>
+                                    </span>
+
+                                </li>
+                            </ul>
+                        </pre>
+                    </div>
+
+                </div>
+            </div>
+            <!-- 广播消息 -->
+            <div ng-if="_msg.type == webConfig.MSG_SERVICE_TYPE && _msg.msgObj.n_TYPE == 1">
+                <div class="msg_txt_warper">
+                    <!-- <p class="_ent_name">{{_msg.msgObj.s_ENT_NAME}}</p> -->
+                    <div class="msg_broad_wrap">
+                        <p class="_broad_title"><span class="_from_ent" ng-bind-html="'【'+_msg.msgObj.s_ENT_NAME+'】'"></span><span ng-bind-html="_msg.msgObj.s_TITLE"></span></p>
+                        <!-- <p class="_title">{{_msg.msgObj.s_TITLE}}</p> -->
+                        <!-- <p class="_time">{{_msg.date | msgDetailTimeFormat}}</p> -->
+                        <!-- <img ng-src="{{_msg.msgObj.s_COVERIMAGEURL}}" class="_img"/> -->
+                        <pre class="_s_content" ng-bind-html="_msg.msgObj.s_CONTENTS | broadContentFilter"></pre>
+                        <!-- <p class="_go_link"><i></i>阅读全文</p> -->
+                        <div class="broadcast_footer">
+                            <a draggable="false" href="javascript:;" class="broadcast_detail_btn go_broad_detail"><span ng-lang langkey="seeDetail">查看详情</span><span class="right_arrow"></span></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="clear"></div>
+            </div>
+            <!-- 语音消息 -->
+            <div ng-if="_msg.type == webConfig.MSG_VOICE_TYPE" class="voice_msg">
+                <div class="avatar">
+                    <img emp-avatar avatar="_msg.sender.SAvatar" emp="_msg.sender"/>
+                </div>
+                <div class="msg_txt_warper">
+                    <p ng-if="_msg.inGroup && _msg.senderId != user.Id" class="msg_sender_name" ng-bind="_msg.sender.SShowName || _msg.sender.Name"></p>
+                    <div class="warper"  context-menu-hepler menu-forwardable="1" menu-msg="_msg" menu-data="{{_msg.messageid}}" menu-type="{{webConfig.MSG_NAME}}">
+                        <span class="msg_split"></span>
+                        <div class="msg_txt voice_area" ng-style="{width:(50 + _msg.content * 7) + 'px'}">
+                            <i class="voice_icon" ng-class="{playing:playing == _msg.messageid}"></i>
+                            <span class="voice_time" time="{{_msg.content}}">{{_msg.content}}''</span>
+                        </div>
+                        <a draggable="false" href="javascript:;" class="resend" ng-show="_msg.status == webConfig.MSG_SENDFAIL" ng-click="resendMsg(_msg)"></a>
+                        <a draggable="false" href="javascript:;" class="sending" ng-show="_msg.status == webConfig.MSG_SENDING"><img src="img/ico_loading.gif" /></a>
+                        <div class="voice_infos">
+                            <a draggable="false" href="javascript:;" class="unread" ng-show="_msg.senderId != user.Id && _msg.fileStatus != 7"></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="clear"></div>
+            </div>
+            <!-- 视频消息 -->
+            <div ng-if="_msg.type == webConfig.MSG_VIDEO_TYPE" class="media_msg">
+                <div class="avatar">
+                    <img emp-avatar avatar="_msg.sender.SAvatar" emp="_msg.sender"/>
+                </div>
+                <div class="msg_txt_warper">
+                    <p ng-if="_msg.inGroup && _msg.senderId != user.Id" class="msg_sender_name" ng-bind="_msg.sender.SShowName || _msg.sender.Name"></p>
+                    <div class="warper" context-menu-hepler menu-forwardable="1" menu-msg="_msg" menu-data="{{_msg.messageid}}" menu-type="{{webConfig.MSG_NAME}}">
+                        <pre class="msg_txt video_area">
+                            <span class="play_video"></span>
+                            <img class="thumb_img load_img" ng-src="data:image/jpg;base64,{{_msg.content}}" thumb-img-loader/>
+                        </pre>
+                    </div>
+                </div>
+                <div class="clear"></div>
+            </div>
+            <!-- 文件消息 -->
+            <div ng-if="_msg.type == webConfig.MSG_FILE_TYPE" class="file_msg" path="{{_msg.filePath}}">
+                <div class="avatar">
+                    <img emp-avatar avatar="_msg.sender.SAvatar" emp="_msg.sender"/>
+                </div>
+                <div class="msg_txt_warper">
+                    <p ng-if="_msg.inGroup && _msg.senderId != user.Id" class="msg_sender_name" ng-bind="_msg.sender.SShowName || _msg.sender.Name"></p>
+                    <div class="warper" context-menu-hepler menu-forwardable="0" menu-msg="_msg" menu-data="{{_msg.messageid}}" menu-type="{{webConfig.MSG_FILE_TYPE}}">
+                        <span class="msg_split"></span>
+                        <div class="msg_txt">
+                            <div class="file_detail">
+                                <div class="file_icon {{_msg.content | fileExtFilter}}">
+                                    <i class="trans_icon"></i>
+                                </div>
+                                <div class="file_info">
+                                    <span class="file_name" ng-bind-html="_msg.content" title="{{_msg.content}}"></span>
+                                    <span class="file_size gray">{{_msg.fileLength | fileSizeFormat}}</span>
+                                    <span class="file_status gray trans_speed" style="display:none;"></span>
+                                    <span class="file_status gray trans_status" ng-lang style="display:none;"></span>
+                                    <div class="progess_bar" style="display:none;">
+                                        <div class="complete_bar"></div>
+                                    </div>
+                                </div>
+                                <div class="clear"></div>
+                            </div>
+                            <div class="file_operate sender_operate" style="visibility:hidden;">
+                                <a draggable="false" href="javascript:;" class="re_download" ng-lang langkey="reDownload"></a>
+                                <a draggable="false" href="javascript:;" class="download" ng-lang langkey="download"></a>
+                                <a draggable="false" href="javascript:;" class="save_as" ng-lang langkey="saveAs"></a>
+                                
+                                <a draggable="false" href="javascript:;" class="cancel_upload gray" ng-lang langkey="cancelUpload"></a>
+                                
+                                <a draggable="false" href="javascript:;" class="re_upload" ng-lang langkey="reupload"></a>
+                                
+                                <a draggable="false" href="javascript:;" class="open" ng-lang langkey="open"></a>
+                                <a draggable="false" href="javascript:;" class="open_dir" ng-lang langkey="openDir"></a>
+                                <a draggable="false" href="javascript:;" class="forward_file" ng-lang langkey="forward"></a>
+                                <a draggable="false" href="javascript:;" class="cancel_download" ng-lang langkey="cancelDownload"></a>
+                            </div>
+                            <div class="file_operate receive_operate" style="display:none;">
+                                <a draggable="false" href="javascript:;" class="download" ng-lang langkey="download"></a>
+                                <a draggable="false" href="javascript:;" class="save_as" ng-lang langkey="saveAs"></a>
+                                
+                                <a draggable="false" href="javascript:;" class="cancel_download gray" ng-lang langkey="cancelDownload"></a>
+                                
+                                <a draggable="false" href="javascript:;" class="re_download" ng-lang langkey="reDownload"></a>
+                                
+                                <a draggable="false" href="javascript:;" class="open" ng-lang langkey="open"></a>
+                                <a draggable="false" href="javascript:;" class="open_dir" ng-lang langkey="openDir"></a>
+                                <a draggable="false" href="javascript:;" class="forward_file" ng-lang langkey="forward"></a>
+                            </div>
+                        </div>
+                        <a draggable="false" href="javascript:;" class="resend" ng-show="_msg.fileStatus == 4 && _msg.status == webConfig.MSG_SENDFAIL" ng-click="resendMsg(_msg)"></a>
+                        <!-- <a href="javascript:;" class="resend" ng-show="_msg.status == webConfig.MSG_SENDFAIL" ng-click="resendMsg(_msg)"></a>
+                        <a href="javascript:;" class="cancel" ng-show="_msg.uploadStatus == webConfig.FILE_UPLOADING" ng-click="cancelFile(_msg)"></a>
+                        <a href="javascript:;" class="sending" ng-if="_msg.uploadStatus == webConfig.FILE_COMPLETE && _msg.status == webConfig.MSG_SENDING"><img src="img/ico_loading.gif" /></a> -->
+                    </div>
+                </div>
+                <div class="clear"></div>
+            </div>
+            <!-- 大文件消息 -->
+            <div ng-if="_msg.msgType == 10 && _msg.msgObj.n_TYPE == 9 && _msg.msgObj.type == 0" class="file_msg" filelength="{{_msg.msgObj.fileList.length}}" finished="{{(_msg.fileStatus == 4 || _msg.fileStatus == 8) ? 1 : 0}}">
+                <div class="avatar">
+                    <img emp-avatar avatar="_msg.sender.SAvatar" emp="_msg.sender"/>
+                </div>
+                <div class="msg_txt_warper">
+                    <p ng-if="_msg.inGroup && _msg.senderId != user.Id" class="msg_sender_name" ng-bind="_msg.sender.SShowName || _msg.sender.Name"></p>
+                    <div class="warper">
+                        <span class="msg_split"></span>
+                        <div class="msg_txt">
+                            <div class="file_detail">
+                                <div class="file_icon intranet {{_msg.content | fileExtFilter:1}}">
+                                    <i class="trans_icon"></i>
+                                    <i class="intranet_icon"></i>
+                                </div>
+                                <div class="file_info">
+                                    <span class="file_name" ng-bind-html="_msg.content|largeFileMsgContentFilter" title="{{_msg.content|largeFileMsgContentFilterTitle}}"></span>
+                                    <span class="file_size gray">{{_msg.msgObj.totalLength | fileSizeFormat}}</span>
+                                    <span class="file_status gray trans_speed" style="display:none;"></span>
+                                    <span class="file_status gray trans_status" ng-lang style="display:none;"></span>
+                                    <div class="progess_bar" style="display:none;">
+                                        <div class="complete_bar"></div>
+                                    </div>
+                                </div>
+                                <p ng-lang langkey="largeFIleMsgTip" class="large_file_tips"></p>
+                                <div class="clear"></div>
+                            </div>
+                            <div class="file_operate sender_operate" style="visibility:hidden;" ng-style="{visibility:_msg.senderId == user.Id ? 'visible' : 'hidden'}">
+                                <a draggable="false" href="javascript:;" class="receive_status" ng-lang langkey="receiveStatus"></a>
+                                <a draggable="false" href="javascript:;" class="cancel_send" ng-lang langkey="cancel"></a>
+                                <!-- <a href="javascript:;" class="download" ng-lang langkey="download"></a>
+                                <a href="javascript:;" class="save_as" ng-lang langkey="saveAs"></a>
+                                <a href="javascript:;" class="forward_file" ng-lang langkey="forward"></a>
+                                <a href="javascript:;" class="cancel_upload gray" ng-lang langkey="cancelUpload"></a>
+                                
+                                <a href="javascript:;" class="re_upload" ng-lang langkey="reupload"></a>
+                                
+                                <a href="javascript:;" class="open" ng-lang langkey="open"></a>
+                                <a href="javascript:;" class="open_dir" ng-lang langkey="openDir"></a> -->
+                            </div>
+                            <div class="file_operate receive_operate" style="display:none;">
+                                
+                                <a draggable="false" href="javascript:;" class="receive" ng-lang langkey="receive"></a>
+                                <a draggable="false" href="javascript:;" class="save_as" ng-lang langkey="saveAs"></a>
+                                <a draggable="false" href="javascript:;" class="reject" ng-lang langkey="cancel"></a>
+                                
+                                <a draggable="false" href="javascript:;" class="cancel_receive gray" ng-lang langkey="cancelReceive"></a>
+                                
+                                <!-- <a draggable="false" href="javascript:;" class="re_receive" ng-lang langkey="reReceive"></a> -->
+                                
+                                <a draggable="false" href="javascript:;" class="open" ng-lang langkey="open"></a>
+                                <a draggable="false" href="javascript:;" class="open_dir" ng-lang langkey="openDir"></a>
+                            </div>
+                        </div>
+                        <!-- <a href="javascript:;" class="resend" ng-show="_msg.status == webConfig.MSG_SENDFAIL" ng-click="resendMsg(_msg)"></a>
+                        <a href="javascript:;" class="cancel" ng-show="_msg.uploadStatus == webConfig.FILE_UPLOADING" ng-click="cancelFile(_msg)"></a>
+                        <a href="javascript:;" class="sending" ng-if="_msg.uploadStatus == webConfig.FILE_COMPLETE && _msg.status == webConfig.MSG_SENDING"><img src="img/ico_loading.gif" /></a> -->
+                    </div>
+                </div>
+                <div class="clear"></div>
+            </div>
+            <!-- 图片消息 -->
+            <div ng-if="_msg.type == webConfig.MSG_PIC_TYPE" class="media_msg">
+                <div class="avatar">
+                    <img emp-avatar avatar="_msg.sender.SAvatar" emp="_msg.sender"/>
+                </div>
+                <div class="msg_txt_warper">
+                    <p ng-if="_msg.inGroup && _msg.senderId != user.Id" class="msg_sender_name" ng-bind="_msg.sender.SShowName || _msg.sender.Name"></p>
+                    <div class="warper pic_msg">
+                        <pre class="msg_txt" pid="msg_{{_msg.messageid}}" ng-click="previewImage(_msg)" style="background:#f1f2f4;" context-menu-hepler menu-forwardable="1" menu-msg="_msg" menu-data="{{_msg.messageid}}" menu-type="{{webConfig.MSG_NAME}}"><span class="hide_name">{{_msg.sender.Name}}：</span><img source="{{_msg.filePath || _msg.fileUrl}}" draggable="false" class="thumb_img load_img" ng-src="{{_msg.filePath || _msg.fileUrl}}" />
+                            <!-- <span class="hide_name">{{_msg.sender.Name}}：</span><img source="{{_msg.filePath || _msg.fileUrl}}" draggable="false" class="thumb_img load_img" ng-src="{{_msg.content ? 'data:image/jpg;base64,'+_msg.content : (_msg.filePath || _msg.fileUrl)}}" /> -->
+                        </pre>
+                        <div class="clear"></div>
+                        <p ng-if="_msg.fileUrl == '' && _msg.status == 1" ng-lang langkey="intranetPicTips" class="intranet_pic"></p>
+                        <a draggable="false" href="javascript:;" class="resend" ng-show="_msg.status == webConfig.MSG_SENDFAIL" ng-click="resendMsg(_msg)"></a>
+                        <a draggable="false" href="javascript:;" class="cancel" ng-show="_msg.uploadStatus == webConfig.FILE_UPLOADING" ng-click="cancelFile(_msg)"></a>
+                        <a draggable="false" href="javascript:;" class="sending" ng-show="_msg.status == webConfig.MSG_SENDING"><img src="img/ico_loading.gif" /></a>
+                    </div>
+                </div>
+                <div class="clear"></div>
+            </div>
+            <!-- 分享的新闻消息 -->
+            <div ng-if="_msg.type == webConfig.MSG_SERVICE_TYPE && _msg.msgObj.n_TYPE == 0" class="news_msg">
+                <div class="avatar">
+                    <img emp-avatar avatar="_msg.sender.SAvatar" emp="_msg.sender"/>
+                </div>
+                <div class="msg_txt_warper">
+                    <p ng-if="_msg.inGroup && _msg.senderId != user.Id" class="msg_sender_name" ng-bind="_msg.sender.SShowName || _msg.sender.Name"></p>
+                    <div class="warper" context-menu-hepler menu-forwardable="1" menu-data="{{_msg.messageid}}" menu-type="{{webConfig.MSG_NAME}}" menu-msg="_msg">
+                        <pre class="msg_txt" pid="msg_{{_msg.messageid}}">
+                            <img draggable="false" class="thumb_img load_img" ng-src="data:image/jpg;base64,{{_msg.msgObj.thumb}}" />
+                            <div class="news_detail">
+                                <p class="news_title" title="{{_msg.msgObj.title}}">{{_msg.msgObj.title}}</p>
+                                <a draggable="false" href="{{_msg.msgObj.url}}" class="news_url" target="_blank" title="{{_msg.msgObj.title}}">{{_msg.msgObj.url}}</a>
+                            </div>
+                        </pre>
+                    </div>
+                </div>
+                <div class="clear"></div>
+            </div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="groupInfo.html">
+        <div class="group_info_pop">
+            <!-- <a href="javascript:;" class="close_btn" ng-click="closeThisPop()"></a>
+            <div class="group_info_title">群聊详情</div> -->
+            <div class="group_info_content" ng-if="!currentChat.isGroup">
+                <div class="group_members">
+                    <div class="members_content">
+                        <div class="section">
+                            <div class="avatar" ng-click="addEmp()">
+                                <div class="add_icon icon_content"></div>
+                            </div>
+                        </div>
+                        <div class="section" title="{{currentChat.Name || currentChat.ShowName}}">
+                            <div class="avatar">
+                                <img emp-avatar  emp="currentChat"/>
+                            </div>
+                            <div class="member_name" ng-bind="currentChat.Name || currentChat.ShowName"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="group_info" style="border-bottom:0;">
+                    <!-- <div class="section">
+                        <div class="group_div_header">群主</div>
+                        <div class="group_div_short" ng-bind="group.group_admin.SShowName"></div>
+                    </div> -->
+                    <div class="section">
+                        <div class="group_div_header" ng-lang langkey="stickOnTop">消息置顶</div>
+                        <div class="on-off" ng-class="{on:currentChat.Sticky,off:!currentChat.Sticky}" ng-click="setTop($event)">
+                            <div class="switch no_an" ng-class="{s_on:currentChat.Sticky,s_off:!currentChat.Sticky}"  ></div>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <div class="group_div_header" ng-lang langkey="msgdisturb">消息免打扰</div>
+                        <div class="on-off" ng-class="{on:currentChat.Undisturbed,off:!currentChat.Undisturbed}" ng-click="setDisturb($event)">
+                            <div class="switch no_an" ng-class="{s_on:currentChat.Undisturbed,s_off:!currentChat.Undisturbed}"  ></div>
+                        </div>
+                    </div>
+                    <div class="section" ng-if="!isBroad()">
+                        <div class="group_div_header" ng-lang langkey="saveToContacts">保存到联系人</div>
+                        <div class="on-off"  ng-class="{on:currentChat.Favorite,off:!currentChat.Favorite}"  ng-click="saveGroup($event)">
+                            <div class="switch no_an" ng-class="{s_on:currentChat.Favorite,s_off:!currentChat.Favorite}"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="group_info_content" ng-if="currentChat.isGroup">
+                <div class="group_members" ng-style="{borderBottomWidth:data.group.isKicked ? '0px' : '1px'}">
+                    <div class="members_content scrollbar-dynamic" jquery-scrollbar>
+                        <div class="section" ng-if="!data.group.isKicked">
+                            <div class="avatar" ng-click="addEmp()">
+                                <div class="add_icon icon_content"></div>
+                            </div>
+                        </div>
+                        <div class="section" ng-if="isAdminEmp">
+                            <div class="avatar" ng-click="delEmp()">
+                                <div class="del_icon icon_content"></div>
+                            </div>
+                        </div>
+                        <div class="section" ng-repeat="member in groupMembers | orderBy:['-isAdmin','IMStatus','namePinyin'] track by $index" title="{{member.Name}}" ng-if="member.Id">
+                            <div class="del_emp" ng-click="del(member)" ng-if="delChecked && !member.isAdmin">
+                                <i></i>
+                            </div>
+                            <div class="avatar">
+                                <img emp-avatar  emp="member"/>
+                            </div>
+                            <div class="member_name" ng-bind="member.Name"></div>
+                            <div class="group_admin" ng-if="member.isAdmin == 1" ng-lang langKey="groupOwner">群主</div>
+                            <div class="group_banned" ng-if="member.banned" ng-lang langKey="banned"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="group_info" ng-if="!data.group.isKicked">
+                    <div class="group_div_header" ng-lang langKey="groupName">群聊名称</div>
+                    <div style="float: right;width: 0;"></div>
+                    <div ng-if="!changeTag" ng-click="change($event)" class="group_div_content">
+                        <span>{{room.name}}</span>
+                        <i></i>
+                    </div>
+                    <div ng-if="changeTag" class="group_div_content" set_focus>
+                    </div>
+                </div>
+                <div class="group_info" ng-if="!data.group.isKicked" ng-style="{borderBottomWidth : isAdminEmp ? '0px' : '1px'}">
+                    <!-- <div class="section">
+                        <div class="group_div_header">群主</div>
+                        <div class="group_div_short" ng-bind="group.group_admin.SShowName"></div>
+                    </div> -->
+                    <div class="section">
+                        <div class="group_div_header" ng-lang langkey="stickOnTop">消息置顶</div>
+                        <div class="on-off" ng-class="{on:currentChat.Sticky,off:!currentChat.Sticky}" ng-click="setTop($event)">
+                            <div class="switch no_an" ng-class="{s_on:currentChat.Sticky,s_off:!currentChat.Sticky}"  ></div>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <div class="group_div_header" ng-lang langkey="msgdisturb">消息免打扰</div>
+                        <div class="on-off" ng-class="{on:currentChat.Undisturbed,off:!currentChat.Undisturbed}" ng-click="setDisturb($event)">
+                            <div class="switch no_an" ng-class="{s_on:currentChat.Undisturbed,s_off:!currentChat.Undisturbed}"  ></div>
+                        </div>
+                    </div>
+                    <div class="section" ng-if="!isBroad()">
+                        <div class="group_div_header" ng-lang langkey="saveToContacts">保存到联系人</div>
+                        <div class="on-off"  ng-class="{on:currentChat.Favorite,off:!currentChat.Favorite}"  ng-click="saveGroup($event)">
+                            <div class="switch no_an" ng-class="{s_on:currentChat.Favorite,s_off:!currentChat.Favorite}"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="group_loginOut" ng-click="leaveRoom()" ng-if="!isAdminEmp && isInGroup">删除并退出</div>
+            </div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="face.html">
+        <div class="faces_dom" id="faces_dom">
+            <div class="face_cates" ng-if="cates.length > 1">
+                <a class="face_cate" href="javascript:;" ng-repeat="cate in cates" ng-click="changeCate($index)" ng-class="{cur : current == $index}">{{cate}}</a>
+            </div>
+            <div class="face_con face_{{cates[current]}}" ng-keydown="faceKeyDown($event)" ng-keyup="faceKeyUp($event)">
+                <a draggable="false" ng-click="insertFace($index)" href="javascript:;" ng-repeat="face in faces" class="face face_{{$index}}" title="[{{face}}]"></a>
+            </div>
+            <!-- <div class="tran"></div>
+            <div class="tran1"></div> -->
+        </div>
+    </script>
+    <script type="text/ng-template" id="ent.html">
+        <div class="ent_tree" id="root_{{ent.Id}}">
+            <div class="ent_dept root" ng-bind="ent.Name" did="{{ent.Id}}" cid="{{ent.CompanyId}}" isroot="true" context-menu-hepler menu-type="dept" menu-data="{{ent.Id}}"></div>
+            <div class="childs"></div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="favDept.html">
+        <div class="ent_tree" id="fav_root_{{ent.Id}}">
+            <div class="ent_dept root" ng-bind="ent.Name" did="{{ent.Id}}" cid="{{ent.CompanyId}}" isroot="true" context-menu-hepler menu-type="favorite" menu-fav="dept" menu-data="{{ent.Id}}"></div>
+            <div class="childs"></div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="entDept.html">
+        <div>
+            <div class="ent_dept" ng-class="{ent_user : branch.isUser}" id="dept_{{branch.Id}}" did="{{branch.Id}}" ng-bind="branch.Name"context-menu-hepler menu-type="dept" menu-data="{{branch.Id}}"></div>
+            <div class="childs"></div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="entUser.html">
+        <div>
+            <div class="ent_dept ent_user" did="{{branch.UserId}}" context-menu-hepler menu-type="emp" menu-data="{{branch.Id}}" ng-dblclick="goChatWith(branch.UserId)">
+                <img emp-avatar emp="branch" ng-src="{{branch.Avatar}}" action="none"/>
+                <span ng-bind="branch.Name"></span>
+                <span ng-if="branch.ExtendPropsAfterName[0]" ng-bind="branch.ExtendPropsAfterName[0]"></span>
+            </div>
+            <div class="childs"></div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="context_menu.html">
+        <div class="drop_down_menu" ng-if="menuList.length">
+            <div ng-repeat="menu in menuList" stop-bubble  on-finish-render>
+                <a draggable="false" href="javascript:;" ng-click="menu.callback($event)">{{menu.name}}</a>
+            </div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="at_emp.html">
+        <div class="at_emp_con scrollbar-dynamic" jquery-scrollbar id="at_emp_con" ng-keydown="keydown($event)" tabindex="-1" style="border: none">
+            <div id="at_emp_wrap" class="" ng-show="result.length">
+                <div on-finish-render class="at_emp" ng-if="emp.Id" ng-repeat="emp in result" ng-click="atEmp(emp,$event)" ng-class="{active:index == $index}" ng-mousedown="empMouseDown()">
+                    <div class="avatar"><img emp-avatar avatar="emp.SAvatar" emp="emp" action="none"/></div>
+                    <p class="emp_name">{{emp.Name}}</p>
+                </div>
+            </div>
+        </div>
+    </script>
+    <script type="text/ng-template" id="largeFileReceiveStatus.html">
+        <div class="im_pop">
+            <div class="large_file_status">
+                <div ng-repeat="user in list">
+                    <div class="status_block">
+                        <div class="avatar">
+                            <img emp-avatar emp="user"/>
+                        </div>
+                        <span ng-bind="user.Name" class="receiver_name"></span>
+                        <div class="receiver_status" ng-if="user.Status == 0" ng-bind-html="langPack.getKey('waitReceive')"></div>
+                        <div ng-if="user.Status == 1" class="receive_progress">
+                            <div class="receive_progress_complete" ng-style="{width:user.Percent + '%'}"></div>
+                            <p ng-bind-html="user.Percent + '%'"></p>
+                        </div>
+                        <div class="receiver_status" ng-if="user.Status == 4" ng-bind-html="langPack.getKey('receiveComplete')"></div>
+                        <div class="receiver_status" ng-if="user.Status == 8" ng-bind-html="langPack.getKey('hasReject')"></div>
+                        <div class="receiver_status" ng-if="user.Status == 3" ng-bind-html="langPack.getKey('receiveError')"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
+</body>
+</html>

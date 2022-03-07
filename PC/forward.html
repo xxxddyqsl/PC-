@@ -1,0 +1,99 @@
+﻿<!DOCTYPE html>
+<html ng-app="im">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <title>SnailIM Login</title>
+    <script>
+        // var ROOT = 'res://js/';
+        var ROOT = '';
+        var PAGE = 'forward';
+        var loginController = loginController || {};
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/global.css" />');
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/jquery.scrollbar.css" />');
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/main.css" />');
+    </script>
+</head>
+<body class="bg" ng-controller="appController" style="background:#fff">
+    <div ng-controller="mainController" class="main_wrap forward_page" ng-style="{display:user ? 'block' : 'none'}" style="display:none;">
+        <p class="choose_title" ng-lang langkey="forward"></p>
+        <a draggable="false" class="close_frame" ng-click="close()"><i></i></a>
+        <div class="choose_wrap forward">
+            <div class="choose_left">
+                <div class="search_area">
+                    <input type="text" ng-input="search()" ng-keydown="onKeyDown($event)" ng-model="keyword" ng-lang langkey="search"/>
+                    <a draggable="false" href="javascript:;" class="search_btn" ng-if="!keyword"></a>
+                    <a draggable="false" href="javascript:;" class="clear_search" ng-if="keyword" ng-click="clearSearch()"></a>
+                </div>
+                <div class="search_res" ng-class="{no_res : keyword && !searchResult.hasResult && !$scope.searchResult.allData.length}" ng-show="searchResult.searching">
+                    <div class="search_cate search_staff" ng-if="searchResult.staffs.length">
+                        <p class="search_cate_title" ng-lang langkey="concat"></p>
+                        <div class="res_item staff_item" ng-repeat="staff in searchResult.staffs" title="{{staff.deptName}}" ng-class="{active:staff.active}" ng-click="selectSearchRes(staff)">
+                            <img emp-avatar emp="staff" class="search_avatar"/>
+                            <div class="item_info">
+                                <p content="staff.Name" width="200"  keyword="keyword" filter-content-split></p>
+                                <p content="staff.deptName" width="200"  keyword="keyword" filter-content-split class="grap"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="search_cate search_group"ng-if="searchResult.groups.length">
+                        <p class="search_cate_title" ng-lang langkey="group"></p>
+                        <div class="res_item group_item" ng-repeat="group in searchResult.groups" ng-class="{active:group.active}" ng-click="selectSearchRes(group)">
+                            <img emp-avatar class="search_avatar" emp="group" is-group="true"/>
+                            <div class="item_info">
+                                <p style="line-height:36px;" content="group.ShowName" width="200"  keyword="keyword" filter-content-split></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="source_cate">
+                    <div class="concat_wrap">
+                        <div class="concat_block">
+                            <p class="concat_title no_tran" ng-lang langkey="recentChat" ng-click="getFriends()"></p>
+                            <div class="concats forward_chats">
+                                <div class="wrap scrollbar-dynamic" jquery-scrollbar id="chat_list">                            
+                                    <div cus-repeat="chat in chatList track by chat.Id" list="chatList" height="36" buffer-height="100" on-scroll-end="onScrollEnd" when-show-dom="whenShow">
+                                        <div concat-directive></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="choose_right">
+                <p class="select_users">
+                    <span ng-lang langkey="selectedUsers"></span>
+                    <span ng-if="selected.length" ng-bind-html="selected.length"></span>
+                    <span ng-if="selected.length" ng-lang langkey="selectedUsersUnit"></span>
+                </p>
+                <div class="selected_user_wrap">
+                    <div class="selected_item" ng-repeat="user in selected" ng-style="{display:selected.length ? 'block' : 'none'}" style="display:none">
+                        <img ng-src="{{user.Avatar}}"  draggable="false"/>
+                        <span ng-bind="user.Name || user.ShowName"></span>
+                        <a draggable="false" href="javascript:;" ng-if="user.deleteAble" ng-click="deleteThis(user)" class="del_user"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="choose_btns">
+            <a draggable="false" href="javascript:;" class="cancel" ng-lang langkey="cancel" ng-click="close()"></a>
+            <a draggable="false" href="javascript:;" class="confirm " ng-lang langkey="confirm" ng-click="submit()"></a>
+        </div>
+    </div>
+    <script>
+        document.write('<script src="'+ROOT+'js/main.js">'+'<\/script>');
+    </script>
+    <script type="text/ng-template" id="chatConcat.html">
+        <div class="chat_block" ng-click="selectThis(chat)">
+            <div class="avatar">
+                <img ng-src="{{chat.Avatar}}"/>
+            </div>
+            <div class="chat_info">
+                <div class="info_top">
+                    <p class="emp_name">{{chat.Name ? chat.Name : chat.ShowName}}</p>
+                </div>
+            </div>
+        </div>
+    </script>
+</body>
+</html>

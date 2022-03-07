@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html ng-app="im">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <title>SnailIM Login</title>
+    <script>
+        // var ROOT = 'res://js/';
+        var ROOT = '';
+        var PAGE = 'BookAMeeting';
+        var loginController = loginController || {};
+        // document.write('<link rel="stylesheet" type="text/css" href="' + ROOT + 'css/global.css" />');
+        document.write('<link rel="stylesheet" type="text/css" href="' + ROOT + 'css/jquery.scrollbar.css" />');
+        // document.write('<link rel="stylesheet" type="text/css" href="' + ROOT + 'css/main.css" />');
+        document.write('<link rel="stylesheet" type="text/css" href="' + ROOT + 'css/BookAMeeting.css" />');
+
+        document.write('<link rel="stylesheet" type="text/css" href="' + ROOT + 'js/bootstrap/css/bootstrap.min.css" />');
+        document.write('<link rel="stylesheet" type="text/css" href="' + ROOT + 'js/bootstrap/css/bootstrap-datetimepicker.min.css" />');
+    </script>
+    <!-- 加载显示隐藏 处理方案 否则隐藏的元素会闪烁 在需要隐藏的div标签中添加 ng-cloak -->
+    <style>
+        [ng-cloak] {
+            display: none !important
+        }
+        /* 时间选择器 */
+        .datetimepicker{
+            /* height: 200px; */
+            max-height: 300px;
+            overflow: auto;
+            margin-right: 10px;
+        }
+        .datetimepicker .datepicker-inline{
+            width: 100%;
+            height: 100%;
+        }
+        .datetimepicker .table-condensed{
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body ng-controller="appController">
+    <div class='wrapper gg-flex-4 gg-flex-2' ng-controller="mainController" ng-include="'BookAMeeting.html'">
+
+    </div>
+    <script>
+        // document.write('<script src="' + ROOT + 'js/vidioMeeting/vidioDataProcessing.js">' + '<\/script>');
+
+        document.write('<script src="' + ROOT + 'js/main.js">' + '<\/script>');
+        // document.write('<script src="' + ROOT + 'js/laydate/laydate.js">' + '<\/script>');
+
+        document.write('<script src="' + ROOT + 'js/bootstrap/js/bootstrap.min.js">' + '<\/script>');
+        document.write('<script src="' + ROOT + 'js/bootstrap/js/bootstrap-datetimepicker.min.js">' + '<\/script>');
+
+        document.write('<script src="' + ROOT + 'js/bootstrap/locales/bootstrap-datetimepicker.zh-CN.js">' + '<\/script>');
+    </script>
+
+    <script type="text/ng-template" id="BookAMeeting.html">
+        <div class='header'>
+            预约会议
+        </div>
+        <div class='main'>
+            <div class='main_item gg-flex-3' style='  border-bottom: 1px solid #e5e5e5;'>
+                <div class='main_item_name'>会议主题</div>
+                <div class='main_item_value'> 
+                    <input type="text" placeholder="请输入会议主题" ng-model="Meeting.theme">
+                </div>
+            </div>
+            <div class='main_item gg-flex-3'>
+                <div class='main_item_name'>会议时间</div>
+                <div class='main_item_value'>
+                    <!-- ng-click='setMeetingTime($event)' -->
+                    <input type="text" id="datetimepicker" placeholder="点击设置开始时间"   ng-model="Meeting.time"  onfocus="this.blur();">
+                </div>
+            </div>
+
+            <div class='main_item  main_item_type' style='background-color:transparent;'>
+                <div class='main_item_name' >会议类型</div>
+                <div class='main_item_value gg-flex-1'> 
+                   <div class='main_item_type_icon gg-flex-1 ' ng-click="selectMeetingType($event,'video')" ng-class='{"main_item_type_icon_checked":Meeting.type=="video"}'>
+                       <img class='main_item_type_video' src="./images/video/preordain_video_checked.png" alt="">
+                       <label >视频会议</label>
+                   </div>
+                   <div class='main_item_type_icon gg-flex-1 disabled' ng-click="selectMeetingType($event,'voice')" ng-class='{"main_item_type_icon_checked":Meeting.type=="voice"}'>
+                        <img class='main_item_type_audio' src="./images/video/preordain_audio_checked.png" alt="">
+                        <label>语音会议</label>
+                   </div>
+                </div>
+            </div>
+
+            <div class='main_item  '>
+                <div class='main_item_name gg-flex-1' style=' padding-top: 10px; margin: 0 20px;  margin-bottom: 20px;'>
+                    <div class='main_item_name_title'>参会成员</div>
+                    <div class='main_item_name_quantity'>共 {{Meeting.userList.length}} 人</div>
+                </div>
+                <div class='main_item_value gg-flex-4' style='flex-wrap: wrap;margin: 0 10px;    padding-bottom: 10px;'>
+                    <div class='main_item_value_list gg-flex-1 gg-flex-2 ' data-index="{{$index}}" ng-repeat='item in Meeting.userList track by $index' ng-click='setlistDelete($event,item.id)'>
+                      <div class='main_item_value_list_img ' ng-class='{"main_item_value_list_img_delete":Meeting.deleteListSwitch}'>
+                        <img ng-src="{{item.img}}" alt="">
+                      </div>
+                        <div class='main_item_value_list_name'>{{item.name}}</div>
+                    </div>
+                    <!-- 添加 -->
+                    <div  class='main_item_value_list_operate main_item_value_list_add' ng-click='startChat($event)'>   </div>
+                    <!-- 删除 -->
+                    <div  class='main_item_value_list_operate main_item_value_list_delete' ng-click='setDeleKey($event)'>   </div>
+                </div>
+            </div>
+        </div>
+        <div class='footer gg-flex-1' >
+            <div class='footer_Cancel gg-flex-1'  ng-click='onCancel($event)'>
+                <label>取消</label>
+            </div>
+            <div class='footer_confirm gg-flex-1' ng-click='submit($event)'>
+                <label >确认预约</label>
+            </div>
+            
+        </div>
+    </script>
+
+</body>
+<script>
+    $(function () {
+        //  // 获取当前时间戳 并且当前时间+10分钟 1分钟（60 * 1000）
+        // let date =new Date(new Date().getTime() + ( 10 * 60 * 1000));
+        // //  初始默认时间  最小当前时间的10分钟后
+        // let tomorrow = date.getFullYear() + "-" + ((date.getMonth() + 1)<10?'0'+(date.getMonth() + 1):(date.getMonth() + 1)) + "-" + ((date.getDate())<10?'0'+date.getDate():date.getDate()) + " " + (date.getHours()<10?'0'+date.getHours():date.getHours()) + ":" + (date.getMinutes()<10?'0'+date.getMinutes():date.getMinutes());
+        // console.log(date,tomorrow);
+        // $('#datetimepicker').datetimepicker({
+        //     forceParse: 0,  //强制解析
+        //     format: 'yyyy-mm-dd hh:ii',//显示格式
+        //     language: 'zh-CN',//显示中文
+        //     startDate:tomorrow,//开始时间 - 初始默认时间 当前时间的10分钟后
+        //     startView:'month',//开始视图 - 日期时间选择器打开之后首先显示的视图 - 默认月视图
+        //     todayBtn:1,//显示今日按钮
+        //     minuteStep:1,//构建小时视图。对于每个 minuteStep 都会生成一组预设时间（分钟）用于选择默认为5 每5分钟为1个间隔选择 当前为每1分钟一个间隔
+        //     todayHighlight:true,//当天日期高亮
+        //     autoclose: true,//选中之后自动隐藏日期选择框
+        //     clearBtn: true,//清除按钮
+        //     weekStart:1,
+        // // startView:1,
+        // // minView:2,
+        // // maxView :2,
+       
+        // // autoclose: 1,//选择后自动关闭
+        // // clearBtn:true,//清除按钮
+
+        //     // weekStart: 1,
+        //     // todayBtn:  1,
+        //     // autoclose: 1,
+        //     // todayHighlight: 1,
+        //     // startView: 2,
+
+        //     // showMeridian: 1
+        // }).on('click', function (ev) {
+        //    // $('#datetimepicker').datetimepicker('setDate', date);
+        //     // document.getElementsByClassName('datetimepicker')[0].scrollTop  =document.getElementsByClassName('active')[0].offsetTop;
+        // });
+         
+        // laydate.render({
+        //     elem: '#test1',  //指定元素
+        //     type: 'datetime',
+        //     // range: true,
+        //     format: 'yyyy-MM-dd HH:mm:ss',//默认格式
+        //     value: new Date(date),//初始默认时间 当前时间的10分钟后
+        //     min: 0,//最小范围内的日期时间值
+        //     max: 7,// 最大范围内的日期时间值
+        //     // theme: '#393D49',
+        //     ready: function (date) {
+        //         console.log(date); //得到初始的日期时间对象：{year: 2017, month: 8, date: 18, hours: 0, minutes: 0, seconds: 0}
+        //     }
+        //     , change: function (value, date, endDate) {
+        //         console.log(value); //得到日期生成的值，如：2017-08-18
+        //     }
+        //     , done: function (value, date, endDate) {
+        //         console.log(value); //得到日期生成的值，如：2017-08-18
+
+        //     }
+        // });
+    })
+
+</script>
+
+</html>

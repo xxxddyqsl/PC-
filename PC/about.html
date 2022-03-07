@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html ng-app="im">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <title>SnailIM Login</title>
+    <script>
+        // var ROOT = 'res://js/';
+        var ROOT = '';
+        var PAGE = 'about';
+        var loginController = loginController || {};
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/global.css" />');
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/jquery.scrollbar.css" />');
+        document.write('<link rel="stylesheet" type="text/css" href="'+ROOT+'css/main.css" />');
+    </script>
+</head>
+<body class="bg no_select" ng-controller="appController" style="background:#fff">
+    <div ng-controller="mainController" class="main_wrap about_page" ng-if="user">
+        <a draggable="false" class="close_frame " ng-click="close()"><i></i></a>
+        <div class="about">
+            <div class="logo">
+                <img draggable="false"  src="img/logo.png" />
+            </div>
+            <p class="app_name" ng-lang langkey="appName"></p>
+            <p class="app_ver" ng-bind="ver"></p>
+            <div class="qr_code">
+                <img draggable="false" src="img/erweima.png"/>
+            </div>
+            <p class="scan" ng-lang langkey="scanQrCode"></p>
+            <a draggable="false" href="javascript" class="close_btn blue" ng-click="close()" ng-lang langkey="close"></a>
+            <p class="copy_right" ng-lang langkey="copyRight"></p>
+        </div>
+    </div>
+    <script>
+        document.write('<script src="'+ROOT+'js/main.js">'+'<\/script>');
+    </script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+body{background:#fbfbfb;font-size:14px;}
+
+.btns_wrap{display: -webkit-flex; /* Safari */display: flex;justify-content:center;padding:0 20px;}
+.btns_wrap a{width:95px;text-decoration:none;display:inline-block;vertical-align:middle;border-radius:4px;box-sizing:border-box;text-align:center;line-height:30px;height:30px;}
+.btns_wrap.wrap1{margin-top:20px;}
+.btns_wrap.wrap1 a{line-height:40px;height:40px;width:120px;}
+.btns_wrap a.disable{color:#fff;background:#ddd;border:0;}
+
+
+
+.btn{background:#fff;border:1px solid #c9cfd6;color:#000;}
+.btn:hover{background:#ddd;border-color:#ddd;}
+.btn1{}
+
+
+.green{border:0;background: linear-gradient(to right,#29bfa4,#28d3cb);color:#fff;}
+.green:hover{background: linear-gradient(to right,#25ac95,#4fbeb7);}
+
+.btns_wrap .whole_btn{display:block;line-height:30px;height:30px;}
+.btns_wrap.wrap1 a.whole_btn{width:100%;}
+.org{}
+.oper_result{text-align:center;}
+.ml20{margin-left:20px;}
+
+.view_title{vertical-align:middle;}
+.view_title p{float:left;}
+.win_btn{float:right;width:12px;height:12px;padding:2px;margin-left:5px;}
+.win_btn i{display:block;width:12px;height:12px;background:url(../img/icons.png) no-repeat;}
+.close_win i{background-position:0 -46px;height:9px;width:9px;margin-top:2px;}
+.close_win i:hover{background-position:-9px -46px;}
+.close_win i:active{background-position:-18px -46px;}
+.min_win i{background-position:0 -59px;}
+.min_win i:hover{background-position:-12px -59px;}
+.min_win i:active{background-position:-12px -59px;}
+.go_back{padding:2px 2px;display:inline-block;vertical-align:middle;margin-right:5px;margin-top:-3px;}
+.go_back i{display:block;vertical-align:middle;height:11px;width:6px;background:url(../img/icons.png) no-repeat 0 -117px;}
+.go_back:hover i{background-position:-7px -117px;}
+
+
+.login .logo{text-align:center;margin-top:40px;}
+.login .logo_title{padding:8px 0;font-size:26px;font-weight:bold;}
+.login .login_form{margin-top:35px;}
+.login .login_form .ipt_con{position:relative;margin-bottom:8px;background:none;height:30px;border-bottom:1px solid #d9dfe6;}
+.login .login_form .ipt_con .ipt{zoom:1;z-index:10;position:absolute;border:0;right:0;vertical-align: middle;height:24px;line-height:24px;padding:0px 34px 0px 5px;width:170px;color:#474747;background:url(../img/spacer.gif) repeat;font-size:14px;font-weight:normal;}
+.login .login_form .ipt_field{position:absolute;font-size:14px;top:1px;}
+.login .login_form .ipt_con .ipt_captcha{zoom:1;z-index:10;position:absolute;border:0;right:100px;vertical-align: middle;height:24px;line-height:24px;padding:0px 34px 0px 5px;width:70px;color:#474747;background:url(../img/spacer.gif) repeat;font-size:14px;font-weight:normal;}
+
+.login .logined_acc{margin-top:90px;}
+.logined_acc img{width:80px;height:80px;border-radius:8px;}
+.logined_acc p{padding-top:10px;}
+
+.selected_area_con{position:absolute;right:0;width: 202px;line-height: 24px;height: 24px;top: 0px;font-size: 14px;cursor:pointer;}
+.selected_area_con i{width:7px;height:6px;position:absolute;top:9px;right:5px;background:url(../img/icons.png) no-repeat -7px -32px;}
+.ipt_con:hover .selected_area_con i{background-position:0 -32px;}
+
+.areas{position:absolute;width:210px;border:1px solid #d9dfe6;box-shadow:2px 2px 10px #dbdde1;top:22px;right:0;background:#fff;border-radius:2px;z-index:100;font-size: 14px;display:none;}
+.areas .area{line-height:36px;height:36px;padding:0 10px;font-size: 14px;cursor:pointer;display:block;}
+.areas .area:hover{background:#ebeef2;}
+
+.login .login_form .ipt_con input:-ms-input-placeholder{color:#a9a9a9 !important;}
+.login .login_form .ipt_con input:-moz-placeholder{color:#a9a9a9 !important;}
+.login .login_form .ipt_con input::-moz-placeholder{color:#a9a9a9 !important;}
+.login .login_form .ipt_con input::-webkit-input-placeholder{color:#a9a9a9 !important;}
+
+.login .login_form .ipt_con .placeholder{display:none;display:block\9;position:absolute;left:100px;top:10px;color:#a9a9a9;z-index:-1;}
+
+.login .login_form .ipt_con .eye{position:absolute;width:16px;height:12px;background:url(../img/icons.png) no-repeat 0px 0;right:0px;top:6px;cursor:pointer;z-index:99;}
+.login .login_form .ipt_con .eye:hover{background-position:-32px 0}
+.login .login_form .ipt_con .eye:active{background-position:-16px 0;}
+
+.login .login_form .ipt_con .eye.close{background-position:-32px -12px;}
+.login .login_form .ipt_con .eye.close:hover{background-position:-16px -12px;}
+.login .login_form .ipt_con .eye.close:active{background-position:0 -12px;}
+
+.login .login_form .ipt_con .captchaImg{width: 100px;height: 24px;position: absolute;right: 0;top: 0;cursor: pointer;}
+
+.login .login_form .ipt_con .clear_ipt{position:absolute;width:12px;height:12px;right:2px;top:6px;background:url(../img/icons.png) no-repeat 0 -97px;z-index:11;}
+.login .login_form .ipt_con .clear_ipt:hover{background-position:-12px -97px;}
+.login .login_form .ipt_con .clear_ipt:active{background-position:-24px -97px;}
+
+.submit{margin-top:40px;background:#4692f6;background: linear-gradient(to right,#4692f6,#76bdff);border-radius:4px;color:#fff;font-size:14px;display:block;text-align:center;text-decoration:none;height:40px;line-height:40px;}
+.submit.disable{background:#ddd;}
+
+.auto_login_wrap{background:#fff;border-radius:6px;overflow:hidden;padding:10px 10px 20px;width:275px;}
+.auto_login_wrap p{text-align:center;}
+.auto_login_wrap .tip_content{padding:20px 0;}
+
+.link{color:#333;font-size:12px;text-decoration:none;}
+.link:hover{color:#4692f6;}
+.forget{float:right;margin-top:2px;}
+.login_bott{margin-top:50px;margin-left: 10px;margin-right: 10px;}
+.login_bott .register_link{float:right;}
+.login_bott .register_link:hover{}
+.login_bott .register_link i{background:url(../img/icons.png) no-repeat -1px -135px;display:inline-block;vertical-align:middle;height:7px;width:4px;margin-left:4px;margin-top:-2px;}
+.login_bott .register_link:hover i{background-position:-1px -147px;}
+.error_tips_wrap{display:-webkit-flex;display:flex;position:fixed;bottom:10px;right:0;left:0;justify-content:center;}
+.error_tips_wrap span{padding:3px 20px;border-radius:20px;background:rgba(0,0,0,.5);color:#fff;font-size:12px;}
+
+
+.loging_view{text-align:center;}
+
+img{-webkit-user-select: none;}
+
+.center_btns{text-align:center;margin-top:10px;}
+.switch_btn{color:#4692f6;padding-top:10px;text-decoration:none;}
+.switch_btn:hover{color:#222;}

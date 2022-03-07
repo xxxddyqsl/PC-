@@ -1,0 +1,1196 @@
+html,
+body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* 公共-开始 */
+.gg-flex-1 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gg-flex-2 {
+    flex-direction: column;
+}
+
+.gg-flex-3 {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.gg-flex-4 {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+/* 清除 ul  默认样式 */
+ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+#wrapper {
+    margin: 0 auto;
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.main-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+/* 头部 */
+.header-rtc-right {
+    width: 100%;
+    min-height: 50px;
+    color: #fff;
+    font-size: 14px;
+    z-index: 1;
+    justify-content: flex-end;
+    background-color: #4E6CAA;
+}
+
+.header-rtc-btn {
+    width: 35px;
+    height: 35px;
+    border: none;
+    cursor: pointer;
+    margin: 0 13px;
+    border-radius: 50%;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.header-rtc-userlist-add {
+    border: 1px solid #4E6CAA;
+    background-color: #24334B;
+}
+
+.header-rtc-userlist {
+    background-color: #4E6CAA;
+    background-image: url('../images/video/user-list.svg');
+}
+
+.header-rtc-screenshare {
+    background-color: #4E6CAA;
+    background-image: url('../images/video/share.png');
+}
+
+.header-rtc-userlist-add-icon {
+    width: 23px;
+    height: 23px;
+}
+
+.header-rtc-btn #close {
+    display: inline-block;
+    width: 18px;
+    height: 2px;
+    background: #fff;
+    transform: rotate(45deg);
+}
+
+.header-rtc-btn #close::after {
+    content: '';
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: #fff;
+    transform: rotate(-90deg);
+}
+
+/* 主体 */
+.main {
+    position: relative;
+    flex: 1;
+    width: 100%;
+}
+
+.main:hover .TurnPage-left,
+.main:hover .TurnPage-right {
+    display: block;
+}
+
+.TurnPage-left {
+    /* height: 100%;*/
+    display: none;
+    position: absolute;
+    left: 0;
+    z-index: 1;
+}
+
+.TurnPage-right {
+    position: absolute;
+    right: 0;
+    z-index: 1;
+    display: none;
+    /* height: 100%; */
+    transform: rotate(180deg);
+    -ms-transform: rotate(180deg);
+    /* IE 9 */
+    -moz-transform: rotate(180deg);
+    /* Firefox */
+    -webkit-transform: rotate(180deg);
+    /* Safari 和 Chrome */
+    -o-transform: rotate(180deg);
+    /* Opera */
+}
+
+.TurnPage-icon {
+    /* display: none; */
+    margin: 0 6px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background-color: white;
+    transform: translateY();
+}
+
+#container {
+    position: relative;
+    /* margin: ; */
+    flex: 1;
+    height: 100%;
+    overflow: hidden;
+}
+
+#BisectorMode {
+    position: absolute;
+    /* left: -100%; */
+    width: 100%;
+    height: 100%;
+}
+
+.Bisector-box {
+    width: 100%;
+    height: 100%;
+    flex-wrap: wrap;
+    /* flex-direction: column; */
+}
+
+.Bisector-list-item {
+    /* flex:0 0 33.3% 相当于flex-basis:33.3%，使每一个元素的宽度占外层容器的33.3%，因此每行最多能够排开三个元素。 */
+    /* flex: 50%; */
+    width: 50%;
+    height: 50%;
+    position: relative;
+    /* height: 340px; */
+    overflow: hidden;
+    background-color: tan;
+}
+
+#container video {
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    /* border: 1px solid red; */
+}
+
+.Bisector-list-item:nth-child(odd) {
+    background-color: thistle;
+}
+
+/* .Bisector-list-item:nth-child(3) {
+    background-color: thistle;
+} */
+
+.Bisector-list-item-stream-opt {
+    position: absolute;
+    bottom: 4px;
+    width: 100%;
+    z-index: 3;
+    text-align: left;
+    /* padding: 0 6px; */
+    margin-bottom: 10px;
+}
+
+.Bisector-list-item-stream-opt-btn {
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.5);
+    width: 45px;
+    height: 45px;
+    margin: 0 25px;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.Bisector-list-item-stream-opt-btn-video {
+    background-image: url('../images/video/video-enable.png');
+}
+
+.Bisector-list-item-stream-opt-btn-video-disabled {
+    background-image: url('../images/video/video-disable.png');
+}
+
+.Bisector-list-item-stream-opt-btn-audio {
+    background-image: url('../images/video/audio-enable.png');
+}
+
+.Bisector-list-item-stream-opt-btn-audio-disabled {
+    background-image: url('../images/video/audio-disable.png');
+}
+
+.Bisector-list-item-stream-opt-btn-FullScreen {
+    background-image: url('../images/video/FullScreen.png');
+    background-size: 34px 34px;
+}
+
+#MasterMode {
+    width: 100%;
+    height: 100%;
+    /* display: none; */
+}
+
+.MasterMode-box {
+    width: 100%;
+    height: 100%;
+    flex-wrap: wrap;
+}
+
+.MasterMode-main {
+    position: relative;
+    width: 100%;
+    height: 480px;
+    margin-bottom: 10px;
+    background-color: brown;
+}
+
+
+.MasterMode-box {
+    width: 100%;
+    flex: 1;
+    /* height: 100%; */
+}
+
+.MasterMode-list-item {
+    width: 20%;
+    height: 100%;
+    position: relative;
+    background-color: tan;
+}
+
+.MasterMode-list-item i {
+    margin: 0 10px;
+    width: 36px;
+    height: 36px;
+    background-size: contain;
+}
+
+.MasterMode-list-item .Bisector-list-item-stream-opt-btn-FullScreen {
+    background-size: 24px 24px;
+}
+
+.MasterMode-list-item:nth-child(even) {
+    background-color: thistle;
+}
+
+/* 添加成员 蒙层*/
+#addlist-wrapper {
+    display: flex;
+    justify-content: center;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    margin: 0;
+    z-index: 9;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-size: 14px;
+    /* visibility: hidden; */
+    /* pointer-events: none; */
+    background-color: rgba(0, 0, 0, .26);
+}
+
+.addlist-box {
+    position: relative;
+    /* width: 46.5rem; */
+    width: 50%;
+    /* padding: 1.5rem; */
+    margin: 20px 0;
+    height: 639px;
+    border-radius: 10px;
+    background-color: #fff;
+}
+
+/*在线成员列表 蒙层  */
+.mask-user-list-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    margin: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-size: 14px;
+    /* visibility: hidden; */
+    background-color: rgba(0, 0, 0, .26);
+}
+
+.mask-user-list-box {
+    position: relative;
+    width: 255px;
+    margin-top: auto;
+    height: calc(100% - 50px);
+    background-color: #fff;
+}
+
+.mask-user-list-header {
+    width: 100%;
+    height: 35px;
+    color: #3A91F3;
+    /* line-height: 35px; */
+    background: #fff;
+    border-bottom: 1px solid #ececed;
+}
+
+.mask-user-list-header span {
+    border-bottom: 2px solid #3a91f3;
+    padding-bottom: 8px;
+}
+
+.mask-user-list-header-online {
+    padding-left: 10px;
+}
+
+.mask-user-list-header-close {
+    margin-left: auto;
+    cursor: pointer;
+    padding-right: 10px;
+}
+
+.mask-main-user-list {
+    flex: 1;
+    width: 100%;
+    font-size: 13px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.mask-main-user-list-item {
+    /* clear: both; */
+    padding: 10px;
+    border-bottom: 1px solid #ebeef5;
+}
+
+.mask-main-user-list-item-icon {
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+}
+
+.mask-main-user-list-item-name {
+    width: 50%;
+    text-align: left;
+    overflow: hidden;
+    /*超出部分隐藏*/
+    white-space: nowrap;
+    /*不换行*/
+    text-overflow: ellipsis;
+    /*超出部分文字以...显示*/
+    display: inline-block;
+}
+
+.mask-main-user-list-item-status {
+    width: 8px;
+    height: 8px;
+    margin-left: auto;
+    border-radius: 50%;
+    background-color: #42b983;
+}
+
+.mask-main-user-list-item-status-not {
+    background-color: #ccc;
+}
+
+
+
+/* 新版本 */
+/* 公共-开始 */
+.gg-flex-1 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gg-flex-2 {
+    flex-direction: column;
+}
+
+.gg-flex-3 {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.gg-flex-4 {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.gg-flex-5 {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+}
+
+/* 公共 - 结束 */
+
+.webRTC-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    /* z-index: 99; */
+    display: flex;
+    flex-direction: column;
+}
+
+.webRTC-minimize {
+    width: 100px !important;
+    height: 100px !important;
+    overflow: hidden;
+    z-index: 2;
+    /* border: 1px solid; */
+    border-radius: 10px;
+}
+
+/* 头部 */
+.webRTC-header {
+    /* width: 100%; */
+    min-height: 53px;
+    color: #fff;
+    font-size: 14px;
+    padding: 0 2rem;
+    background-color: #4E6CAA;
+}
+
+.webRTC-header-right {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    justify-content: flex-end;
+}
+
+.webRTC-header-btn {
+    width: 35px;
+    height: 35px;
+    border: none;
+    cursor: pointer;
+    margin: 0 13px;
+    border-radius: 50%;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.webRTC-header-userlist-add {
+    padding: 0;
+    border: 1px solid #4E6CAA;
+    background-color: #24334B;
+}
+
+.webRTC-header-userlist {
+    background-color: #4E6CAA;
+    background-image: url('../images/video/user-list.svg');
+}
+
+.webRTC-header-screenshare {
+    background-color: #4E6CAA;
+    background-image: url('../images/video/share.png');
+}
+
+.webRTC-header-userlist-add-icon {
+    width: 23px;
+    height: 23px;
+}
+
+.webRTC-header-btn #close {
+    display: inline-block;
+    width: 18px;
+    height: 2px;
+    background: #fff;
+    transform: rotate(45deg);
+}
+
+.webRTC-header-btn #close::after {
+    content: '';
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: #fff;
+    transform: rotate(-90deg);
+}
+
+/* 主体 */
+#webRTC-main {
+    position: relative;
+    flex: 1;
+    height: 100%;
+    overflow: hidden;
+    /* background-color: rosybrown; */
+}
+
+.webRTC-main:hover .TurnPage-left,
+.webRTC-main:hover .TurnPage-right {
+    display: block;
+}
+
+.TurnPage-left {
+    /* height: 100%;*/
+    display: none;
+    position: absolute;
+    left: 0;
+    z-index: 9;
+    top: 50%;
+    transform: translate(0%, -50%);
+}
+
+.TurnPage-right {
+    display: none;
+    position: absolute;
+    right: 0;
+    z-index: 9;
+    top: 50%;
+    transform: translate(0%, -50%);
+    /* height: 100%; */
+    /* transform: rotate(180deg);
+    -ms-transform: rotate(180deg); */
+    /* IE 9 */
+    /* -moz-transform: rotate(180deg); */
+    /* Firefox */
+    /* -webkit-transform: rotate(180deg); */
+    /* Safari 和 Chrome */
+    /* -o-transform: rotate(180deg); */
+    /* Opera */
+}
+
+.TurnPage-icon {
+
+    /* display: none; */
+    margin: 0 6px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.5);
+    transform: translateY();
+}
+
+#triangle-topright {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 10;
+    width: 0;
+    height: 0;
+    border-top: 40px solid #F39E4D;
+    border-left: 56px solid transparent;
+}
+
+#triangle-topright::after {
+    content: '主持';
+    position: absolute;
+    /* z-index: 9; */
+    font-size: 10px;
+    color: #fff;
+    right: 2px;
+    top: -37px;
+    width: 25px;
+}
+
+#BisectorMode {
+    position: absolute;
+    /* left: -100%; */
+    width: 100%;
+    height: 100%;
+}
+
+.Bisector-box {
+    width: 100%;
+    height: 100%;
+    flex-wrap: wrap;
+    overflow: auto;
+    /* flex-direction: column; */
+}
+
+.Bisector-list-item {
+    /* flex:0 0 33.3% 相当于flex-basis:33.3%，使每一个元素的宽度占外层容器的33.3%，因此每行最多能够排开三个元素。 */
+    /* flex: 50%; */
+    width: 50%;
+    height: 50%;
+    position: relative;
+    /* height: 340px; */
+    overflow: hidden;
+    /* background-color: tan; */
+}
+
+.Bisector-list-item-img {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    width: 50px;
+    height: 50px;
+    z-index: 3;
+    border-radius: 8px;
+}
+
+.Bisector-list-item-name {
+    position: absolute;
+    left: 10px;
+    bottom: 20px;
+    z-index: 3;
+    padding: 2px 10px;
+    /* max-width: 82px; */
+    overflow: hidden;
+    /*超出部分隐藏*/
+    white-space: nowrap;
+    /*不换行*/
+    text-overflow: ellipsis;
+    /*超出部分文字以...显示*/
+    border-radius: 10px;
+    color: #fff;
+    font-size: 13px;
+    text-align: center;
+    line-height: 30px;
+    margin-left: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+#webRTC-main video {
+    width: 100%;
+    height: 100%;
+    /*  fill: 中文释义“填充”。默认值。替换内容拉伸填满整个content box, 不保证保持原有的比例。
+        contain: 中文释义“包含”。保持原有尺寸比例。保证替换内容尺寸一定可以在容器里面放得下。因此，此参数可能会在容器内留下空白。
+        cover: 中文释义“覆盖”。保持原有尺寸比例。保证替换内容尺寸一定大于容器尺寸，宽度和高度至少有一个和容器一致。因此，此参数可能会让替换内容（如图片）部分区域不可见。
+        none: 中文释义“无”。保持原有尺寸比例。同时保持替换内容原始尺寸大小。
+        scale-down: 中文释义“降低”。就好像依次设置了none或contain, 最终呈现的是尺寸比较小的那个  */
+    object-fit: cover;
+    background-color: #000;
+}
+
+.Bisector-list-item:nth-child(odd) {
+    /* background-color: thistle; */
+}
+
+/* .Bisector-list-item:nth-child(3) {
+    background-color: thistle;
+} */
+
+.Bisector-list-item-stream-opt {
+    position: absolute;
+    bottom: 4px;
+    width: 100%;
+    z-index: 2;
+    text-align: left;
+    /* padding: 0 6px; */
+    margin-bottom: 10px;
+}
+
+.Bisector-list-item-stream-opt-btn-box {
+    flex: 1;
+}
+
+.Bisector-list-item-stream-opt-btn {
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.5);
+    width: 45px;
+    height: 45px;
+    margin: 0 25px;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.Bisector-list-item-stream-opt-btn-video {
+    background-image: url('../images/video/video-enable.png');
+}
+
+.Bisector-list-item-stream-opt-btn-video-disabled {
+    background-image: url('../images/video/video-disable.png');
+}
+
+.Bisector-list-item-stream-opt-btn-audio {
+    background-image: url('../images/video/audio-enable.png');
+}
+
+.Bisector-list-item-stream-opt-btn-audio-disabled {
+    background-image: url('../images/video/audio-disable.png');
+}
+
+.Bisector-list-item-stream-opt-btn-FullScreen {
+    background-image: url('../images/video/FullScreen.png');
+    background-size: 34px 34px;
+}
+
+.Bisector-list-item-stream-opt-btn-hangup {
+    background-image: url('../images/video/hangup.png');
+    background-size: 34px 34px;
+}
+
+.Bisector-list-item-stream-opt-btn-ZoomOut {
+    background-image: url('../images/video/ZoomOut.png');
+    background-size: 32px 32px !important;
+}
+
+.webRTC-btn-FullScreen {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 99;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.5);
+    width: 28px;
+    height: 28px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-image: url('../images/video/FullScreen.png');
+    background-size: 18px 18px;
+
+}
+
+#MasterMode {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    /* display: none; */
+}
+
+.MasterMode-box {
+    width: 100%;
+    height: 100%;
+    flex-wrap: wrap;
+    position: relative;
+}
+
+.MasterMode-small-box {
+    /* flex:1; */
+    width: 100%;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+/* .MasterMode-main {
+    position: relative;
+    width: 100%;
+    height: 480px;
+    margin-bottom: 10px;
+    background-color: brown;
+} */
+
+
+/* .MasterMode-box {
+    width: 100%;
+    flex: 1; 
+} */
+
+.MasterMode-list-item {
+    width: 20%;
+    /* margin-top: auto; */
+    overflow: hidden;
+    /* height: calc(100% - 490px); */
+    /* height: calc(40% - 10px); */
+    height: 100%;
+    position: relative;
+    /* background-color: tan; */
+}
+
+.MasterMode-list-item .Bisector-list-item-name {
+    top: 10px;
+    left: auto;
+    right: 10px;
+    bottom: auto;
+}
+
+.MasterMode-list-item i {
+    margin: 0 10px;
+    width: 36px;
+    height: 36px;
+    background-size: contain;
+}
+
+.MasterMode-list-item-is-zoom {
+    /* position: absolute; */
+    /* left: 0;
+    top: 0; */
+    flex: 1;
+    width: 100%;
+    /* height: 480px; */
+    /* height: 60%; */
+}
+
+.MasterMode-list-item-is-zoom i {
+    width: 45px;
+    height: 45px;
+}
+
+.MasterMode-list-item .Bisector-list-item-stream-opt-btn-FullScreen {
+    background-size: 24px 24px;
+}
+
+.MasterMode-list-item:nth-child(even) {
+    background-color: thistle;
+}
+
+.webRTC-NoMedias {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    z-index: 1;
+    color: #fff;
+    top: 0;
+    left: 0;
+    /* font-size: ; */
+     
+    background-color: #000;
+}
+.MasterMode-box .webRTC-NoMedias  {
+/* 允许鼠标或触屏事件穿透当前层件 - 正常触发长按拖动或点击*/
+pointer-events: none;
+}
+/* 在线成员列表 - 开始 */
+.OnlineMemberList-box {
+    position: absolute;
+    right: 0;
+    top: 0;
+    min-width: 210px;
+    height: 100%;
+    z-index: 10;
+    font-size: 13px;
+    background-color: #fff;
+}
+
+.OnlineMemberList-header {
+    width: 100%;
+    height: 35px;
+    color: #3A91F3;
+    /* line-height: 35px; */
+    background: #fff;
+    border-bottom: 1px solid #ececed;
+}
+
+.OnlineMemberList-header span {
+    padding-bottom: 8px;
+    border-bottom: 2px solid #3a91f3;
+}
+
+.OnlineMemberList-header-online {
+    padding-left: 10px;
+}
+
+.OnlineMemberList-header-close {
+    margin-left: auto;
+    cursor: pointer;
+    padding-right: 10px;
+}
+
+.OnlineMemberList-main-box {
+    flex: 1;
+    width: 100%;
+    font-size: 13px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.OnlineMemberList-main-item {
+    clear: both;
+    padding: 10px;
+    border-bottom: 1px solid #ebeef5;
+}
+
+.OnlineMemberList-main-item-icon {
+    width: 30px;
+    height: 30px;
+    /* margin-right: 10px; */
+}
+
+.OnlineMemberList-main-item-name {
+    flex: 1;
+    margin: 0 10px;
+    text-align: left;
+    display: inline-block;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.OnlineMemberList-main-item-manager-icon {
+    width: 22px;
+    height: 22px;
+    margin: 0 10px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.OnlineMemberList-main-item-audio-disable {
+    background-image: url('../images/video/userList-audio-disable.png');
+}
+
+.OnlineMemberList-main-item-audio-enable {
+    background-image: url('../images/video/userList-audio-enable.png');
+}
+
+.OnlineMemberList-main-item-video-disable {
+    background-image: url('../images/video/userList-video-disable.png');
+}
+
+.OnlineMemberList-main-item-video-enable {
+    background-image: url('../images/video/userList-video-enable.png');
+}
+
+.OnlineMemberList-main-item-status {
+    width: 8px;
+    height: 8px;
+    margin-left: auto;
+    border-radius: 50%;
+    background-color: #42b983;
+}
+
+.OnlineMemberList-main-item-status-not {
+    background-color: #ccc;
+}
+
+
+/* 隐藏 滚动条 */
+.scrollbar-wrap::-webkit-scrollbar {
+    display: none;
+    /* Chrome Safari */
+}
+
+.scrollbar-wrap {
+    scrollbar-width: none;
+    /* firefox */
+    -ms-overflow-style: none;
+    /* IE 10+ */
+    /* overflow-x: hidden; */
+    overflow: auto;
+}
+
+/* 正在退出-提示 */
+.loading-box {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 99;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.loading-box div {
+    color: #fff;
+    font-size: 20px;
+}
+
+.loading-box img {
+    width: 30px;
+    height: 30px;
+    margin: 20px 0;
+}
+
+
+/*  异常 提示 */
+.webRTC-Error {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 11;
+    background-color: #000;
+}
+
+.webRTC-Error-title {
+    /* display: block; */
+    position: absolute;
+    left: 0;
+    right: 0;
+    /* top: 20%; */
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font: normal bold 30px "Product Sans", sans-serif;
+    white-space: nowrap;
+}
+
+.webRTC-Error-title .webRTC-Error-title-name {
+    animation: bounce 0.75s cubic-bezier(0.05, 0, 0.2, 1) infinite alternate;
+    display: inline-block;
+    transform: translate3d(0, 0, 0);
+    /* margin-top: 0.5em; */
+    text-shadow: rgba(255, 255, 255, 0.4) 0 0 0.05em;
+    font: normal 500 30px 'Varela Round', sans-serif;
+}
+
+@keyframes bounce {
+    0% {
+        transform: translate3d(0, 0, 0);
+        /* text-shadow: rgba(255, 255, 255, 0.4) 0 0 0.05em; */
+    }
+
+    100% {
+        transform: translate3d(0, -1em, 0);
+        /* text-shadow: rgba(255, 255, 255, 0.4) 0 1em 0.35em; */
+    }
+}
+
+/* 单人视频 - 新样式 */
+.one-on-one-video-box {
+    width: 100%;
+    height: 100%;
+    flex-wrap: wrap;
+}
+
+.one-on-one-video-list-item {
+    width: 100%;
+    height: 100%;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.one-webRTC-SmallV {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px !important;
+    height: 100px !important;
+    overflow: hidden;
+    z-index: 2;
+    /* border: 1px solid; */
+    /* border-radius: 10px; */
+}
+
+/* .one-webRTC-SmallV video::-webkit-media-controls-panel{ 
+    border: 1px solid #fff; 
+} */
+/* .one-webRTC-SmallV .webRTC-NoMedias{
+    width:auto;
+    height:auto; 
+    top: 50%;
+    left: 50%; 
+     transform: translate(-50%, -50%);
+     background-color: rgba(0, 0, 0, 0.5);
+     padding: 4px;
+     border-radius: 6px;
+}
+.one-webRTC-SmallV .webRTC-NoMedias-isV{
+    width: 100% ;
+    height: 100%;
+    position: absolute;
+    z-index: 1;
+    color: #fff;
+    top: 0;
+    left: 0;
+    background-color: #000;
+} */
+.one-webRTC-SmallV-Move-left {
+    left: 0 !important;
+    right: auto !important;
+    transition: left 2s;
+}
+
+.one-webRTC-SmallV-Move-right {
+    left: auto !important;
+    right: 0 !important;
+    transition: right 2s;
+}
+
+.one-on-one-video-list-item .webRTC-NoMedias img {
+    width: 200px;
+    height: 200px;
+}
+
+.webRTC-NoMedias img {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.webRTC-NoMedias div {
+    position: absolute;
+    width: auto;
+    height: auto;
+    min-width: 67px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 4px;
+    border-radius: 6px;
+    font-size: 14px;
+    text-align: center;
+    position: absolute;
+    display: block;
+    /* 允许鼠标或触屏事件穿透当前层件 - 正常触发长按拖动或点击*/
+    pointer-events: none;
+}
+
+.video-screen {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 1;
+    background: #000; 
+}
+
+.video-screen-user-icon {
+    width: 200px;
+    height: 200px;
+}
+
+.video-screen-title {
+    position: absolute;
+    width: auto;
+    height: auto;
+    color: #fff;
+    min-width: 67px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 4px 15px;
+    border-radius: 6px;
+    font-size: 14px;
+    text-align: center;
+    position: absolute;
+    display: block;
+}
+.webRTC-call-time{
+    color: #fff;
+    font-size: 20px;
+    margin: 0 10px;
+    padding: 4px 10px;
+    border-radius: 10px;
+    text-align: center;
+    /* line-height: 30px; */
+    background-color: rgba(0, 0, 0, 0.5);
+}

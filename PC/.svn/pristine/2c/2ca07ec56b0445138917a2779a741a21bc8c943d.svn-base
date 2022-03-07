@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html ng-app="im">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <title>SnailIM Login</title>
+    <script>
+        // var ROOT = 'res://js/';
+        var ROOT = '';
+        var PAGE = 'vidioMeeting';
+        var loginController = loginController || {};
+        document.write('<link rel="stylesheet" type="text/css" href="' + ROOT + 'css/global.css" />');
+        document.write('<link rel="stylesheet" type="text/css" href="' + ROOT + 'css/jquery.scrollbar.css" />');
+        document.write('<link rel="stylesheet" type="text/css" href="' + ROOT + 'css/main.css" />');
+
+        document.write('<link rel="stylesheet" type="text/css" href="' + ROOT + 'css/vidioMeeting.css" />');
+    </script>
+    <!-- 加载显示隐藏 处理方案 否则隐藏的元素会闪烁 在需要隐藏的div标签中添加 ng-cloak -->
+    <style>
+        [ng-cloak] {
+            display: none !important
+        }
+    </style>
+</head>
+
+<body ng-controller="appController">
+    <div ng-controller="mainController" ng-include="'webRTC.html'">
+
+    </div>
+    <script>
+        // 新版本 SDK
+        document.write('<script src="' + ROOT + 'js/vidioMeeting/webRtcSdk.js">' + '<\/script>');
+        // 老版本 SDK
+        // document.write('<script src="' + ROOT + 'js/vidioMeeting/bundle.js">' + '<\/script>');
+        document.write('<script src="' + ROOT + 'js/vidioMeeting/vidioDataProcessing.js">' + '<\/script>');
+
+        document.write('<script src="' + ROOT + 'js/main.js">' + '<\/script>');
+    </script>
+
+    <script type="text/ng-template" id="webRTC.html">
+        <div class='webRTC-wrapper' ng-class="webRTC.minimize.Turnon? 'webRTC-minimize' : ''"  ng-dblclick="doubleClick()">
+            <div class="webRTC-btn-FullScreen"  ng-if='webRTC.minimize.id!="" && webRTC.minimize.Turnon' title='还原窗口' ng-click='Onminimize($event)'></div>
+            <!-- 异常 提示 -->
+            <div class='webRTC-Error' ng-if='webRTC.ErrorTitle.length>0'>
+                <div class='gg-flex-1 webRTC-Error-title'>
+                    <div class='webRTC-Error-title-name' ng-repeat='item in webRTC.ErrorTitle track by $index' style="animation-delay: {{$index*0.08}}s;">{{item}}</div>
+                </div>
+            </div>
+            <div class='webRTC-header' ng-if='!webRTC.minimize.Turnon && webRTC.Headershow'>
+                <div  class='webRTC-header-right gg-flex-3'> 
+                   
+                    <button  class="webRTC-header-btn webRTC-header-userlist-add "   title="{{isPauseMineAu(webRTC.msg.medias,'v')?'打开摄像头':'关闭摄像头'}}" ng-click='OnPauseMineAu($event,2,webRTC.PauseVilist)'>
+                        <div class="{{isPauseMineAu(webRTC.msg.medias,'v')?'Bisector-list-item-stream-opt-btn-video-disabled':'Bisector-list-item-stream-opt-btn-video'}}" style='display: block; width: 100%; height: 100%;border-radius: 50%; background-size: cover;background-position: center;background-repeat: no-repeat' ></div>
+                    </button>
+                    <button  class="webRTC-header-btn webRTC-header-userlist-add "   title="{{isPauseMineAu(webRTC.msg.medias,'a')?'打开麦克风':'关闭麦克风'}}" ng-click='OnPauseMineAu($event,1,webRTC.PauseAulist)'>
+                        <div class="{{isPauseMineAu(webRTC.msg.medias,'a')?'Bisector-list-item-stream-opt-btn-audio-disabled':'Bisector-list-item-stream-opt-btn-audio'}}" style='display: block; width: 100%; height: 100%;border-radius: 50%; background-size: cover;background-position: center;background-repeat: no-repeat' ></div>
+                    </button>
+                    <!-- {{isPauseMineAu(webRTC.msg.medias,"a")}} -->
+
+                    <button class='webRTC-header-btn  webRTC-header-userlist-add gg-flex-1' title='最小化' ng-click='Onminimize($event)'>
+                        <i style='width: 66%; height:3px; background-color:#fff;'></i>
+                    </button>
+                    <!--  ng-if='VconcatId' -->
+                    <!-- <button ng-click='OnAddUsers($event)'  class="webRTC-header-btn webRTC-header-userlist-add gg-flex-1"  title="添加成员"> -->
+                        <button ng-click='startChat($event)'  ng-if='webRTC.VconcatId' class="webRTC-header-btn webRTC-header-userlist-add gg-flex-1"  title="添加成员">
+                        <img class="webRTC-header-userlist-add-icon" src="./images/video/userList-add.png" alt="" />
+                    </button>
+                    <button ng-click="OnlineMember($event)" class="webRTC-header-btn webRTC-header-userlist" title="在线成员"></button>
+                    <button ng-click="OnVideoSwitch($event)" ng-if='webRTC.msg.mode != "screen" || webRTC.modeId == webRTC.msg.userId' class="webRTC-header-btn webRTC-header-screenshare"
+                        title="{{webRTC.cutover?'切换至本地摄像头':'切换至屏幕共享'}}"></button>
+                    <button ng-click="close($event)" class="webRTC-header-btn webRTC-header-userlist-add gg-flex-1" title="退出视频聊天">
+                        <span id="close"></span>
+                    </button>
+                </div>
+            </div>
+            <div id='webRTC-main'   ng-class='!webRTC.minimize.Turnon? "webRTC-main" : ""'>
+                <!-- {{webRTC.orderType}} -->
+                  <!--  上一页 -->
+                  <div class=" TurnPage-left gg-flex-1" ng-if='webRTC.Headershow'>
+                    <img src="./images/video/case-pre.png" class=" TurnPage-icon" alt="" ng-click='OnLastPage($event)'>
+                </div>
+                <!-- 音频 输出-->
+                <div id='audio-box' style='width: 0;height: 0;'>
+                    
+                </div>
+                <div id='BisectorMode'  ng-cloak  ng-if='webRTC.ModeSwitch'>
+                    <ul class="Bisector-box gg-flex-4 scrollbar-wrap ">
+                        <!-- <li class="Bisector-list-item"  data-index="{{$index}}" ng-repeat='item in webRTC.StreamList[webRTC.page]  track by $index' id='{{item.id}}_box' ng-class="webRTC.minimize.id==item.id&& webRTC.minimize.Turnon? 'webRTC-minimize' : ''"> -->
+                        <li class="Bisector-list-item"  data-index="{{$index}}" ng-repeat='item in webRTC.userList track by $index' id='{{item.id}}_box' ng-class="webRTC.minimize.id==item.id&& webRTC.minimize.Turnon? 'webRTC-minimize' : ''">
+                            <span style='display: none;'>{{item.img}}</span>
+                            <img  class='Bisector-list-item-img' ng-src="{{item.img}}" alt="" ng-if="(item.medias == '' || item.medias == 'a' ) &&  !webRTC.minimize.Turnon ">
+                            <div class='Bisector-list-item-name'  ng-if=' !webRTC.minimize.Turnon'>{{item.name}}</div>
+                             
+                            <video  id="{{item.id}}" muted autoplay ng-click='onFullScreen($event,item.id)'></video>
+                            <!-- 主持人 角标 -->
+                           <div id='triangle-topright' ng-if='item.id==webRTC.msg.master'></div>
+                            <div class="Bisector-list-item-stream-opt gg-flex-1" ng-if=' !webRTC.minimize.Turnon'>
+                                <!-- {{onisMasterOrManagerNoMe(item)}} -->
+                                  <!-- master房主 或者 管理员manager 有权限控制成员音视频 item.master == webRTC.msg.userId ||  item.manager == webRTC.msg.userId isPauseMineAu(webRTC.msg.medias)?'./images/video/audio-disable.png':'./images/video/audio-enable.png' -->
+                                <div class='Bisector-list-item-stream-opt-btn-box gg-flex-1'>
+                                    <ng-template  ng-if='onisMasterOrManagerNoMe(item)' class='gg-flex-1'>
+                                     <!-- 控制-关闭打开摄像头 -->
+                                     <i class="Bisector-list-item-stream-opt-btn Bisector-list-item-stream-opt-btn-video"  ng-click="closeVideo($event,item.id,item.videoPause,item.medias,2)" ng-class="{true:'Bisector-list-item-stream-opt-btn-video-disabled'}[isPauseMineAu(item.medias,'v')]"></i>
+                                     <!-- 控制-关闭打开麦克风 -->
+                                     <i class="Bisector-list-item-stream-opt-btn Bisector-list-item-stream-opt-btn-audio"  ng-click="closeAudio($event,item.id,item.audioPause,item.medias,1)" ng-class="{true:'Bisector-list-item-stream-opt-btn-audio-disabled'}[isPauseMineAu(item.medias,'a')]"></i>
+                                    </ng-template>
+                                     <!-- 控制-是否大屏 -->
+                                    <!-- <i class="Bisector-list-item-stream-opt-btn Bisector-list-item-stream-opt-btn-FullScreen" ng-click='onFullScreen($event,item.id)'></i> -->
+                                </div>
+                                <!-- <ng-template ng-if = "onisNoMasterOrManager(item) ">
+                                <div class='Bisector-list-item-stream-opt-btn-box gg-flex-1'  >
+
+                                    <i class="Bisector-list-item-stream-opt-btn "  ng-click="closeVideo($event,item.id,item.videoPause,item.medias,2)" ng-class="!item.videoPause?'Bisector-list-item-stream-opt-btn-video':'Bisector-list-item-stream-opt-btn-video-disabled'"></i>
+
+                                    <i class="Bisector-list-item-stream-opt-btn "  ng-click="closeAudio($event,item.id,item.audioPause,item.medias,1)" ng-class="!item.audioPause?'Bisector-list-item-stream-opt-btn-audio':'Bisector-list-item-stream-opt-btn-audio-disabled'"></i>
+                                    
+                                </div>
+                            </ng-template> -->
+                            </div>
+                            <div class='webRTC-NoMedias gg-flex-1'  ng-if="item.status != '1' || item.medias=='' || isPauseMineAu(item.medias,'v') ">
+                                <span>{{item.status=='0' ? '待加入':item.status=='2' ? '断线':item.status=='3' ? '离开':isPauseMineAu(item.medias,'v')&&isPauseMineAu(item.medias,'a') ? '暂无资源流': isPauseMineAu(item.medias,'v') ? '暂无视频': ''}} </span>
+                            </div>
+                        </li>
+                        
+                    </ul>
+                </div>
+                <div id='MasterMode' ng-cloak  ng-if='!webRTC.ModeSwitch'>
+                    <div class="gg-flex-4 gg-flex-2" style="height: 100%; position: relative;">
+                        <!-- <div data-index="{{$index}}" class="MasterMode-main" ng-if="1 ==0"  data-index="{{$index}}"  ng-repeat='item in webRTC.StreamList[webRTC.page] track by $index' id='{{item.id}}_box' ng-class="webRTC.minimize.id==item.id? 'webRTC-minimize' : ''">
+                            <video  id="{{item.id}}" autoplay></video>
+                            <div class="Bisector-list-item-stream-opt gg-flex-1"  ng-if='webRTC.minimize.id==""'>
+                                <i class="Bisector-list-item-stream-opt-btn Bisector-list-item-stream-opt-btn-video"   ng-click="closeVideo($event,item.clientId)"></i>
+                                <i class="Bisector-list-item-stream-opt-btn Bisector-list-item-stream-opt-btn-audio"  ng-click="closeAudio($event,item.clientId)"></i>
+                                <i class="Bisector-list-item-stream-opt-btn Bisector-list-item-stream-opt-btn-FullScreen"  data-id="{{item.clientId}}"  ng-click="requestFullScreen($event)"></i>
+                            </div>
+                            <div class='webRTC-NoMedias gg-flex-1'  ng-if="item.status == '0' ||item.medias==''">
+                                <span>{{item.status=='0' ? '待加入' : item.medias=='' ? '暂无资源流' : ''}} </span>
+                            </div>
+                        </div> -->
+                    <ul class="MasterMode-box  gg-flex-4 gg-flex-2">
+                        <li   data-index="{{$index}}" class="MasterMode-list-item"     data-index="{{$index}}" ng-repeat='item in webRTC.userList track by $index' id='{{item.id}}_box' ng-if='webRTC.selectItemId == item.id' ng-class="{'MasterMode-list-item-is-zoom':webRTC.selectItemId == item.id, 'webRTC-minimize' : webRTC.minimize.id==item.id&& webRTC.minimize.Turnon}">
+                            <!-- ng-if="(item.medias == '' || item.medias == 'a' ) && !webRTC.minimize.Turnon " -->
+                            <img  class='Bisector-list-item-img' ng-src="{{item.img}}" alt=""  ng-if="(item.status != '1' || item.medias == '' || item.medias == 'a')&&!webRTC.minimize.Turnon">
+                            <div class='Bisector-list-item-name'  ng-if='!webRTC.minimize.Turnon'>{{item.name}}</div>
+                            <video  id="{{item.id}}" muted autoplay ng-dblclick="doubleZoomV($event,item)" ></video>
+                              <!-- 主持人 角标 -->
+                           <div id='triangle-topright' ng-if='item.id==webRTC.msg.master'></div>
+                            <div class="Bisector-list-item-stream-opt gg-flex-1" ng-if=' !webRTC.minimize.Turnon'>
+                                    <!-- master房主 或者 管理员manager 有权限控制成员音视频 item.master == webRTC.msg.userId ||  item.manager == webRTC.msg.userId isPauseMineAu(webRTC.msg.medias)?'./images/video/audio-disable.png':'./images/video/audio-enable.png' -->
+                                    <div class='Bisector-list-item-stream-opt-btn-box gg-flex-1' >
+                                        <!-- <ng-template  ng-if='onisMasterOrManagerNoMe(item)' class='gg-flex-1'> -->
+                                            <!-- 控制-关闭打开摄像头 -->
+                                            <!-- <i class="Bisector-list-item-stream-opt-btn Bisector-list-item-stream-opt-btn-video"  ng-click="closeVideo($event,item.id,item.videoPause,item.medias,2)" ng-class="{true:'Bisector-list-item-stream-opt-btn-video-disabled'}[isPauseMineAu(item.medias,'v')]"></i> -->
+                                            <!-- 控制-关闭打开麦克风 -->
+                                            <!-- <i class="Bisector-list-item-stream-opt-btn Bisector-list-item-stream-opt-btn-audio"  ng-click="closeAudio($event,item.id,item.audioPause,item.medias,1)" ng-class="{true:'Bisector-list-item-stream-opt-btn-audio-disabled'}[isPauseMineAu(item.medias,'a')]"></i> -->
+                                        <!-- </ng-template> -->
+                                        <!-- 控制-是否大屏  (webRTC.msg.mode != "screen" || webRTC.modeId == webRTC.msg.userId || webRTC.modeId == item.id) -->
+                                       <i class="Bisector-list-item-stream-opt-btn Bisector-list-item-stream-opt-btn-ZoomOut"  ng-click='onZoomOut($event,item.id)'   ng-if=' webRTC.selectItemId==item.id && item.Zoom==1 '></i>
+                                       <i class="Bisector-list-item-stream-opt-btn Bisector-list-item-stream-opt-btn-hangup" title='结束屏幕共享'  ng-click="OnVideoSwitch($event)"   ng-if='webRTC.msg.mode == "screen" && webRTC.modeId == webRTC.msg.userId && webRTC.modeId == item.id && item.Zoom==2'></i>
+                                       <!-- <i class="Bisector-list-item-stream-opt-btn Bisector-list-item-stream-opt-btn-FullScreen"></i> -->
+                                   </div>
+                               <!-- master 房主 或者 管理员manager 有权限控制成员音视频-->
+                              <!-- <div class="Bisector-list-item-stream-opt gg-flex-1" ng-if = "onisMasterOrManagerNoMe(item) ">
+                                     <i class="Bisector-list-item-stream-opt-btn "  ng-click="closeVideo($event,$event,item.id,item.videoPause,item.medias,2)" ng-class="!item.videoPause?'Bisector-list-item-stream-opt-btn-video':'Bisector-list-item-stream-opt-btn-video-disabled'"></i>
+                                     <i class="Bisector-list-item-stream-opt-btn "  ng-click="closeAudio($event,$event,item.id,item.audioPause,item.medias,1)" ng-class="!item.audioPause?'Bisector-list-item-stream-opt-btn-audio':'Bisector-list-item-stream-opt-btn-audio-disabled'"></i>
+                                    <i class="Bisector-list-item-stream-opt-btn Bisector-list-item-stream-opt-btn-FullScreen" data-id="{{item.id}}"  ng-click="requestFullScreen($event,item.id)"></i>
+                                </div> -->
+                                <!-- 不是 房主 -->
+                                <!-- <div class="Bisector-list-item-stream-opt gg-flex-1" ng-if = "onisNoMasterOrManager(item)">
+                                    <i class="Bisector-list-item-stream-opt-btn "  ng-click="closeVideo($event,item.id,item.videoPause,item.medias,2)" ng-class="!item.videoPause?'Bisector-list-item-stream-opt-btn-video':'Bisector-list-item-stream-opt-btn-video-disabled'"></i>
+                                    <i class="Bisector-list-item-stream-opt-btn "  ng-click="closeAudio($event,item.id,item.audioPause,item.medias,1)" ng-class="!item.audioPause?'Bisector-list-item-stream-opt-btn-audio':'Bisector-list-item-stream-opt-btn-audio-disabled'"></i>
+                                    <i class="Bisector-list-item-stream-opt-btn Bisector-list-item-stream-opt-btn-FullScreen" data-id="{{item.id}}"  ng-click="requestFullScreen($event,item.id)"></i>
+                                </div> -->
+                            </div>
+                            <div class='webRTC-NoMedias gg-flex-1'  ng-if="item.status != '1' ||item.medias==''">
+                                <span>{{item.status=='0'?'待加入':item.status=='2'?'断线':item.status=='3'?'离开':item.medias==''?'暂无资源流':''}}</span>
+                            </div>
+                        </li>
+                        <!--  webRTC.msg.mode != "screen" && -->
+                        <div class='gg-flex-4  MasterMode-small-box  scrollbar-wrap'  ng-if='!webRTC.minimize.Turnon&& webRTC.Headershow'>
+                            <li   data-index="{{$index}}" class="MasterMode-list-item"     data-index="{{$index}}" ng-repeat='item in webRTC.userList track by $index' id='{{item.id}}_box' ng-if='webRTC.selectItemId != item.id' ng-class="{'MasterMode-list-item-is-zoom':webRTC.selectItemId == item.id, 'webRTC-minimize' : webRTC.minimize.id==item.id&& webRTC.minimize.Turnon}">
+                                <img  class='Bisector-list-item-img' ng-src="{{item.img}}" alt="" ng-if="!webRTC.minimize.Turnon ">
+                                <div class='Bisector-list-item-name'  ng-if='!webRTC.minimize.Turnon'>{{item.name}}</div>
+                                <video  id="{{item.id}}" autoplay ng-click='onFullScreen($event,item.id)'></video>
+                                  <!-- 主持人 角标 -->
+                               <div id='triangle-topright' ng-if='item.id==webRTC.msg.master'></div>
+                                <div class="Bisector-list-item-stream-opt gg-flex-1" ng-if=' !webRTC.minimize.Turnon'>
+                                        <!-- master房主 或者 管理员manager 有权限控制成员音视频 item.master == webRTC.msg.userId ||  item.manager == webRTC.msg.userId isPauseMineAu(webRTC.msg.medias)?'./images/video/audio-disable.png':'./images/video/audio-enable.png' -->
+                                        <div class='Bisector-list-item-stream-opt-btn-box gg-flex-1' >
+                                            <!-- <ng-template  ng-if='onisMasterOrManagerNoMe(item)' class='gg-flex-1'> -->
+                                                <!-- 控制-关闭打开摄像头 -->
+                                                <!-- <i class="Bisector-list-item-stream-opt-btn Bisector-list-item-stream-opt-btn-video"  ng-click="closeVideo($event,item.id,item.videoPause,item.medias,2)" ng-class="{true:'Bisector-list-item-stream-opt-btn-video-disabled'}[isPauseMineAu(item.medias,'v')]"></i> -->
+                                                <!-- 控制-关闭打开麦克风 -->
+                                                <!-- <i class="Bisector-list-item-stream-opt-btn Bisector-list-item-stream-opt-btn-audio"  ng-click="closeAudio($event,item.id,item.audioPause,item.medias,1)" ng-class="{true:'Bisector-list-item-stream-opt-btn-audio-disabled'}[isPauseMineAu(item.medias,'a')]"></i> -->
+                                            <!-- </ng-template> -->
+                                            <!-- 控制-是否大屏 -->
+                                           <!-- <i class="Bisector-list-item-stream-opt-btn Bisector-list-item-stream-opt-btn-FullScreen"  ng-click='onFullScreen($event,item.id)'></i> -->
+                                       </div>
+                                   <!-- master 房主 或者 管理员manager 有权限控制成员音视频-->
+                                  <!-- <div class="Bisector-list-item-stream-opt gg-flex-1" ng-if = "onisMasterOrManagerNoMe(item) ">
+                                         <i class="Bisector-list-item-stream-opt-btn "  ng-click="closeVideo($event,$event,item.id,item.videoPause,item.medias,2)" ng-class="!item.videoPause?'Bisector-list-item-stream-opt-btn-video':'Bisector-list-item-stream-opt-btn-video-disabled'"></i>
+                                         <i class="Bisector-list-item-stream-opt-btn "  ng-click="closeAudio($event,$event,item.id,item.audioPause,item.medias,1)" ng-class="!item.audioPause?'Bisector-list-item-stream-opt-btn-audio':'Bisector-list-item-stream-opt-btn-audio-disabled'"></i>
+                                        <i class="Bisector-list-item-stream-opt-btn Bisector-list-item-stream-opt-btn-FullScreen" data-id="{{item.id}}"  ng-click="requestFullScreen($event,item.id)"></i>
+                                    </div> -->
+                                    <!-- 不是 房主 -->
+                                    <!-- <div class="Bisector-list-item-stream-opt gg-flex-1" ng-if = "onisNoMasterOrManager(item)">
+                                        <i class="Bisector-list-item-stream-opt-btn "  ng-click="closeVideo($event,item.id,item.videoPause,item.medias,2)" ng-class="!item.videoPause?'Bisector-list-item-stream-opt-btn-video':'Bisector-list-item-stream-opt-btn-video-disabled'"></i>
+                                        <i class="Bisector-list-item-stream-opt-btn "  ng-click="closeAudio($event,item.id,item.audioPause,item.medias,1)" ng-class="!item.audioPause?'Bisector-list-item-stream-opt-btn-audio':'Bisector-list-item-stream-opt-btn-audio-disabled'"></i>
+                                        <i class="Bisector-list-item-stream-opt-btn Bisector-list-item-stream-opt-btn-FullScreen" data-id="{{item.id}}"  ng-click="requestFullScreen($event,item.id)"></i>
+                                    </div> -->
+                                </div>
+                                <div class='webRTC-NoMedias gg-flex-1'  ng-if="item.status != '1' ||item.medias==''">
+                                    <span>{{item.status=='0'?'待加入':item.status=='2'?'断线':item.status=='3'?'离开':item.medias==''?'暂无资源流':''}}</span>
+                                </div>
+                            </li>
+    
+                        </div>
+                    </ul>
+                </div>
+                </div>
+
+                 <!--   下一页 -->
+                 <div class=" TurnPage-right gg-flex-1" ng-if='webRTC.Headershow'>
+                    <img src="./images/video/case-next.png" class="TurnPage-icon" alt="" ng-click='OnNextPage($event)'>
+                </div>
+
+                <!-- 在线成员列表 --> 
+                <div class='OnlineMemberList-box gg-flex-1 gg-flex-2' ng-cloak ng-if='webRTC.MemberListshow'>
+                    <div class="OnlineMemberList-header gg-flex-3">
+                        <div class="OnlineMemberList-header-online">
+                          <span>成员人数 ( {{webRTC.listStatus +'/'+ webRTC.userList.length }} ) 人</span>
+                        </div>
+            
+                        <div class="OnlineMemberList-header-close" ng-click="OnlineMember($event)">
+                          <span>关闭</span>
+                        </div>
+                      </div>
+
+                      <div class='OnlineMemberList-main-box' >
+                          <div class='OnlineMemberList-main-item gg-flex-3'  data-index="{{$index}}" ng-repeat='item in webRTC.userList track by $index'  title="{{item.status == '0' ? '待加入' : item.status == '1'? '在线': item.status == '2' ? '断线':  item.status=='3' ? '离开' :''}}">
+                            <img class="OnlineMemberList-main-item-icon" ng-src="{{item.img}}" alt="" />
+                            <div class="OnlineMemberList-main-item-name">{{item.name}} <span class="OnlineMemberList-main-item-master" ng-if=' item.master == item.id ' > (房主)</span> <span class="OnlineMemberList-main-item-master" ng-if='onisManager(item)' > (管理员) </span></div>
+                            <!-- 房主转让 点击显示-房主转让按钮  -->
+                            <!-- <img class="OnlineMemberList-main-item-manager-icon" title='房主转让' ng-if=' item.master == item.id && item.master == webRTC.msg.userId ' ng-click='OnsetMasterTransfer($event,item.id)' src="./images/video/HomeownerTransfer.png" alt="" /> -->
+                            <!-- 房主转让按钮 - 点击设置为房主  --> 
+                            <img class="OnlineMemberList-main-item-manager-icon" title='设为房主' ng-if=' webRTC.setMasterShow  && item.master != item.id' ng-click='OnsetMaster($event,item.id)' src="./images/video/SetHomeowner.png" alt="" />
+                            <!-- 房主权限 - 设置管理员 不是群聊 隐藏  VconcatId-->
+                            <img class="OnlineMemberList-main-item-manager-icon" title='解除管理员'   ng-if=" webRTC.VconcatId && item.master == webRTC.msg.userId && webRTC.msg.userId !=item.id && onisManager(item) " ng-click='Onsetupadmini($event,item.id)'  src ="./images/video/manager-icon.png" alt="" />
+                            <img class="OnlineMemberList-main-item-manager-icon" title='设为管理员'   ng-if=" webRTC.VconcatId && item.master == webRTC.msg.userId && webRTC.msg.userId !=item.id && !onisManager(item) " ng-click='Onsetupadmini($event,item.id)'  src ="./images/video/manager-setup-icon.png" alt="" />
+                            <!-- <img class="OnlineMemberList-main-item-manager-icon" ng-title='{{onisManager(item) ? "解除管理员" : "设为管理员"}}'   ng-if=" item.master == webRTC.msg.userId && webRTC.msg.userId !=item.id  " ng-click='Onsetupadmini($event,item.id)'  ng-src ="{{onisManager(item) ?'./images/video/manager-icon.png':'./images/video/manager-setup-icon.png'}}" alt="" /> -->
+                            <!-- 暂停-音频 -->
+                            <!-- <div>{{!isPauseMineAu(webRTC.PauseAulist,item.id)?'./images/video/userList-audio-disable.png':'./images/video/userList-audio-enable.png'}}</div> -->
+                            <!-- <img   class="OnlineMemberList-main-item-manager-icon" ng-if='onisMasterOrManager(item)' ng-click="closeAudio($event,item.id,item.audioPause,item.medias,1)" title="{{!isPauseMineAu(webRTC.PauseAulist,item.id)?'打开麦克风':'关闭麦克风'}}"  src="{{!isPauseMineAu(webRTC.PauseAulist,item.id)?'./images/video/userList-audio-disable.png':'./images/video/userList-audio-enable.png'}}" alt=""> -->
+                           <i  class="OnlineMemberList-main-item-manager-icon  "     ng-class="!isPauseMineAu(webRTC.PauseAulist,item.id)? 'OnlineMemberList-main-item-audio-disable': 'OnlineMemberList-main-item-audio-enable'"   ng-if='onisMasterOrManager(item)' ng-click="closeAudio($event,item.id,item.audioPause,item.medias,1)" title="{{!isPauseMineAu(webRTC.PauseAulist,item.id)?'打开麦克风':'关闭麦克风'}}"   ></i>
+                            <!-- 暂停-视频 -->
+                            <i  class="OnlineMemberList-main-item-manager-icon " ng-class="!isPauseMineAu(webRTC.PauseVilist,item.id)? 'OnlineMemberList-main-item-video-disable': 'OnlineMemberList-main-item-video-enable'"   ng-if='onisMasterOrManager(item)'  ng-click="closeVideo($event,item.id,item.videoPause,item.medias,2)" title="{{!isPauseMineAu(webRTC.PauseVilist,item.id)?'打开摄像头':'关闭摄像头'}}" ></i>
+                            <!-- <img   class="OnlineMemberList-main-item-manager-icon"  ng-if='onisMasterOrManager(item)'  ng-click="closeVideo($event,item.id,item.videoPause,item.medias,2)" title="{{!isPauseMineAu(webRTC.PauseVilist,item.id)?'打开摄像头':'关闭摄像头'}}"  src="{{!isPauseMineAu(webRTC.PauseVilist,item.id)?'./images/video/userList-video-disable.png':'./images/video/userList-video-enable.png'}}" alt=""> -->
+                            <!-- 在线 状态 -->
+                            <i  class='OnlineMemberList-main-item-status' ng-class="item.status == '1' ? '' : 'OnlineMemberList-main-item-status-not' "></i>
+                          </div>
+                      </div>
+
+                </div>
+
+            </div>
+
+            <!-- 最小化 -->
+            <!-- <div ng-if=''></div> -->
+        </div>
+
+        
+    </script>
+
+</body>
+
+</html>
